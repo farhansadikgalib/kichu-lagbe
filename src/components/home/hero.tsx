@@ -118,7 +118,7 @@ export function Hero() {
         <h1
           id="hero-heading"
           data-hero-item
-          className="max-w-3xl text-4xl font-extrabold tracking-tight text-balance sm:text-5xl md:text-6xl"
+          className="max-w-3xl text-[2.75rem] leading-[1.05] font-bold text-balance sm:text-6xl md:text-7xl"
         >
           Late night.{" "}
           <span className="bg-linear-to-r from-primary via-amber-200 to-yellow-300 bg-clip-text text-transparent">

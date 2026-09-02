@@ -4,17 +4,16 @@ export const BRAND = {
   name: "KichuLagbe",
   tagline: "We deliver happiness",
   description:
-    "Late-night home delivery of snacks, cigarettes, and daily essentials in Bashundhara R/A.",
+    "Late-night home delivery of snacks, cigarettes, and daily essentials in Badda.",
 } as const;
 
 export const SERVICE = {
-  area: "Bashundhara R/A, Dhaka",
-  window: "11:30 PM – 3:30 AM",
+  area: "Badda, Dhaka",
+  window: "8:00 PM – 3:00 AM",
   /** Delivery window in minutes from local midnight; closes past midnight. */
-  openMinutes: 23 * 60 + 30,
-  closeMinutes: 3 * 60 + 30,
+  openMinutes: 20 * 60,
+  closeMinutes: 3 * 60,
   avgDeliveryMinutes: 30,
-  riderHours: "24/7",
 } as const;
 
 /** Whether the delivery window is currently open (window spans midnight). */
@@ -26,7 +25,7 @@ export function isServiceOpen(date = new Date()): boolean {
 export const CONTACT = {
   phone: "+8801647506948",
   email: "deliveryhobeofficial@gmail.com",
-  address: "Bashundhara R/A, Dhaka, Bangladesh",
+  address: "Badda, Dhaka, Bangladesh",
 } as const;
 
 export const ORDER_STATUS_LABELS: Record<string, string> = {

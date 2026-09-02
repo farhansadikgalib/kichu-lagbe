@@ -1,4 +1,4 @@
-import { Bike, MoonStar, Phone } from "lucide-react";
+import { MoonStar, Phone } from "lucide-react";
 import { Parallax, Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { CONTACT, SERVICE } from "@/lib/constants";
@@ -19,23 +19,17 @@ export function CtaStrip() {
               <MoonStar aria-hidden className="size-3.5 text-primary" />
               Every night · {SERVICE.window}
             </p>
-            <h2 id="cta-heading" className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">
+            <h2 id="cta-heading" className="text-3xl font-bold text-balance sm:text-4xl">
               Craving something at 2 AM?
             </h2>
             <p className="text-muted-foreground text-pretty">
               Snacks, smokes, and essentials at your door in ~{SERVICE.avgDeliveryMinutes} minutes,
-              anywhere in {SERVICE.area}. Order online or just give us a call — and if you need to
-              go somewhere, our riders run {SERVICE.riderHours}.
+              anywhere in {SERVICE.area}. Order online or just give us a call.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Button asChild size="lg">
                 <a href={`tel:${CONTACT.phone}`}>
                   <Phone aria-hidden /> {CONTACT.phone}
-                </a>
-              </Button>
-              <Button asChild size="lg" variant="secondary">
-                <a href={`tel:${CONTACT.phone}`} aria-label={`Request a ride — call ${CONTACT.phone}`}>
-                  <Bike aria-hidden /> Request a ride
                 </a>
               </Button>
             </div>

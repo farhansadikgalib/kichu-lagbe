@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -40,34 +40,82 @@ export function GoogleButton({ next }: { next?: string }) {
   const { mutate } = useSession();
   const [pending, setPending] = useState(false);
 
+  const finishLogin = async (idToken: string) => {
+    const user = await apiMutate<SessionUser>("/api/auth/firebase", {
+      body: { idToken },
+    });
+    await mutate();
+    toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
+    const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
+    router.push(safeNext);
+    router.refresh();
+  };
+
+  const reportError = (err: unknown) => {
+    const code = (err as { code?: string })?.code ?? "";
+    // Closing the popup is not an error worth toasting.
+    if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+      return;
+    }
+    if (code === "auth/unauthorized-domain") {
+      toast.error("This domain isn't authorized for Google sign-in yet.");
+      return;
+    }
+    toast.error(
+      err instanceof FetchError ? err.message : "Google sign-in failed. Please try again.",
+    );
+  };
+
+  // Collect the result when we land back from the redirect flow.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const client = await import("@/lib/firebase/client");
+      if (!client.hasPendingRedirect() || !client.isFirebaseConfigured()) return;
+      setPending(true);
+      try {
+        const idToken = await client.consumeRedirectResult();
+        if (!cancelled && idToken) await finishLogin(idToken);
+      } catch (err) {
+        if (!cancelled) reportError(err);
+      } finally {
+        if (!cancelled) setPending(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function handleClick() {
     setPending(true);
     try {
-      const { isFirebaseConfigured, signInWithGooglePopup } = await import(
-        "@/lib/firebase/client"
-      );
-      if (!isFirebaseConfigured()) {
+      const client = await import("@/lib/firebase/client");
+      if (!client.isFirebaseConfigured()) {
         toast.error("Google sign-in isn't configured yet.");
         return;
       }
-      const idToken = await signInWithGooglePopup();
-      const user = await apiMutate<SessionUser>("/api/auth/firebase", {
-        body: { idToken },
-      });
-      await mutate();
-      toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
-      const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
-      router.push(safeNext);
-      router.refresh();
-    } catch (err) {
-      // Closing the popup is not an error worth toasting.
-      const code = (err as { code?: string })?.code ?? "";
-      if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+      // Installed PWAs (especially iOS) can't round-trip a popup — redirect instead.
+      if (client.isStandaloneDisplay()) {
+        await client.signInWithGoogleRedirect();
         return;
       }
-      toast.error(
-        err instanceof FetchError ? err.message : "Google sign-in failed. Please try again.",
-      );
+      try {
+        await finishLogin(await client.signInWithGooglePopup());
+      } catch (err) {
+        const code = (err as { code?: string })?.code ?? "";
+        if (
+          code === "auth/popup-blocked" ||
+          code === "auth/operation-not-supported-in-this-environment"
+        ) {
+          await client.signInWithGoogleRedirect();
+          return;
+        }
+        throw err;
+      }
+    } catch (err) {
+      reportError(err);
     } finally {
       setPending(false);
     }

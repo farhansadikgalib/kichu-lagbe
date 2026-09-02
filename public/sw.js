@@ -1,7 +1,7 @@
 /* KichuLagbe service worker — offline shell + static asset caching. */
-const CACHE_NAME = "kl-v3";
+const CACHE_NAME = "kl-v5";
 const OFFLINE_URL = "/offline";
-const PRECACHE = [OFFLINE_URL, "/icon-192.png?v=3", "/icon-512.png?v=3", "/images/logo.png"];
+const PRECACHE = [OFFLINE_URL, "/icon-192.png?v=5", "/icon-512.png?v=5", "/images/logo.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
