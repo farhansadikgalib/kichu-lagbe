@@ -41,6 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # secrets
+/secrets/
 firebase-adminsdk-*.json
 .env.local
 

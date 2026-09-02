@@ -11,9 +11,9 @@
   <g>
     <path d="M178 196 a86 86 0 1 1 122 78 c-26 15 -38 32 -38 62"
       fill="none" stroke="#ffffff" stroke-width="66" stroke-linecap="round"/>
-    <!-- dot = crescent moon -->
-    <circle cx="262" cy="424" r="40" fill="#ffffff"/>
-    <circle cx="282" cy="408" r="34" fill="url(#bg)"/>
+    <!-- dot = crescent moon, opening toward the upper right -->
+    <path fill="#ffffff" transform="rotate(-35 262 424)"
+      d="M290.4 395.9 A40 40 0 1 0 290.4 452.1 A30 30 0 1 1 290.4 395.9 Z"/>
     <!-- tiny sparkle, top-right -->
     <path fill="#ffffff" d="M400 122 q4 19 23 23 q-19 4 -23 23 q-4 -19 -23 -23 q19 -4 23 -23 z"/>
   </g>
