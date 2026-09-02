@@ -56,7 +56,7 @@ export function Header() {
   return (
     <header
       ref={ref}
-      className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-lg"
+      className="sticky top-0 z-50 backdrop-blur-lg"
     >
       <div className="container-page flex h-16 items-center justify-between gap-3">
         <Link href="/" className="flex items-center gap-2.5" aria-label={`${BRAND.name} home`}>
