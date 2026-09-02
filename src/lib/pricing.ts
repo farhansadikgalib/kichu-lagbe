@@ -1,0 +1,15 @@
+import type { Coupon } from "@/types";
+
+/**
+ * Coupon discount for a given subtotal (BDT). Returns 0 when the coupon
+ * cannot apply. Shared by the validate endpoint and order placement so the
+ * two can never disagree.
+ */
+export function couponDiscount(coupon: Coupon, subtotal: number): number {
+  if (!coupon.isActive) return 0;
+  if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) return 0;
+  if (subtotal < coupon.minOrder) return 0;
+  const discount =
+    coupon.type === "fixed" ? coupon.value : Math.floor((subtotal * coupon.value) / 100);
+  return Math.min(discount, subtotal);
+}

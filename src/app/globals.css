@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * KichuLagbe theme — late-night premium dark with an amber "night glow"
+ * brand color. Destructive stays red so danger actions read differently
+ * from brand CTAs. The app is dark-first (html has the `dark` class):
+ * :root and .dark intentionally share the same values.
+ */
+:root,
+.dark {
+  --background: oklch(0.13 0.008 270);
+  --foreground: oklch(0.96 0.004 270);
+  --card: oklch(0.17 0.01 270);
+  --card-foreground: oklch(0.96 0.004 270);
+  --popover: oklch(0.17 0.01 270);
+  --popover-foreground: oklch(0.96 0.004 270);
+  --primary: oklch(0.78 0.16 70);
+  --primary-foreground: oklch(0.2 0.04 70);
+  --secondary: oklch(0.23 0.012 270);
+  --secondary-foreground: oklch(0.96 0.004 270);
+  --muted: oklch(0.23 0.012 270);
+  --muted-foreground: oklch(0.68 0.01 270);
+  --accent: oklch(0.23 0.012 270);
+  --accent-foreground: oklch(0.96 0.004 270);
+  --destructive: oklch(0.6 0.21 27);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.78 0.16 70 / 60%);
+  --chart-1: oklch(0.78 0.16 70);
+  --chart-2: oklch(0.6 0.21 27);
+  --chart-3: oklch(0.65 0.12 250);
+  --chart-4: oklch(0.7 0.14 160);
+  --chart-5: oklch(0.68 0.01 270);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.155 0.009 270);
+  --sidebar-foreground: oklch(0.96 0.004 270);
+  --sidebar-primary: oklch(0.78 0.16 70);
+  --sidebar-primary-foreground: oklch(0.2 0.04 70);
+  --sidebar-accent: oklch(0.23 0.012 270);
+  --sidebar-accent-foreground: oklch(0.96 0.004 270);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.78 0.16 70 / 60%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  ::selection {
+    @apply bg-primary/30;
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+
+/* Infinite benefits ticker — content is duplicated once, so -50% loops seamlessly. */
+@theme {
+  --animate-marquee: marquee 32s linear infinite;
+
+  @keyframes marquee {
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* Faint hero grid, masked so it fades out toward the edges. */
+@utility bg-grid-faint {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 4%) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 4%) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 65% at 50% 35%, black 25%, transparent 78%);
+}

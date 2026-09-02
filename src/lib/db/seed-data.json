@@ -1,0 +1,470 @@
+{
+  "products": [
+    {
+      "name": "Lucky Strike White 5 Pc",
+      "slug": "lucky-strike-white-5-pc",
+      "price": 75,
+      "category": "cigarettes",
+      "image": "ls.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:41:50.816Z"
+    },
+    {
+      "name": "Morug Pulao",
+      "slug": "morug-pulao",
+      "price": 220,
+      "category": "snacks",
+      "image": "morogpolao.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-04-29T15:59:18.462Z"
+    },
+    {
+      "name": "Chicken Grill & 2 Pc puruta",
+      "slug": "chicken-grill-2-pc-puruta",
+      "price": 180,
+      "category": "snacks",
+      "image": "grill.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-04-29T16:01:15.375Z"
+    },
+    {
+      "name": "Malrboro Gold 5 Pc",
+      "slug": "malrboro-gold-5-pc",
+      "price": 125,
+      "category": "cigarettes",
+      "image": "mlbra.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:52:58.745Z"
+    },
+    {
+      "name": "Benson & Hedges Switch 5 Pc",
+      "slug": "benson-hedges-switch-5-pc",
+      "price": 125,
+      "category": "cigarettes",
+      "image": "bnsn.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-24T17:25:20.039Z"
+    },
+    {
+      "name": "Lucky Strike Red 10 Pc",
+      "slug": "lucky-strike-red-10-pc",
+      "price": 140,
+      "category": "cigarettes",
+      "image": "lsr.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:43:31.896Z"
+    },
+    {
+      "name": "Camel Blue Blust 10Pc",
+      "slug": "camel-blue-blust-10pc",
+      "price": 110,
+      "category": "cigarettes",
+      "image": "cml.jpg",
+      "description": "Mind Refreshing",
+      "createdAt": "2025-11-06T11:04:57.091Z"
+    },
+    {
+      "name": "Potato Crackers",
+      "slug": "potato-crackers",
+      "price": 25,
+      "category": "daily",
+      "image": "potato.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-07-19T15:05:26.354Z"
+    },
+    {
+      "name": "Coca-Cola 1 Liter",
+      "slug": "coca-cola-1-liter",
+      "price": 90,
+      "category": "daily",
+      "image": "1.jpg",
+      "description": "Cold Drinks",
+      "createdAt": "2025-11-05T18:45:46.038Z"
+    },
+    {
+      "name": "Poruta",
+      "slug": "poruta",
+      "price": 20,
+      "category": "snacks",
+      "image": "poruta.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-26T19:10:56.125Z"
+    },
+    {
+      "name": "Lucky Strike Red 1 packet",
+      "slug": "lucky-strike-red-1-packet",
+      "price": 260,
+      "category": "cigarettes",
+      "image": "lsr.jpg",
+      "description": "Mind Refreshing",
+      "createdAt": "2025-11-05T17:12:54.686Z"
+    },
+    {
+      "name": "Lucky Strike 1 Packet",
+      "slug": "lucky-strike-1-packet",
+      "price": 260,
+      "category": "cigarettes",
+      "image": "ls.jpg",
+      "description": "Mind Refreshing",
+      "createdAt": "2025-11-05T17:11:29.967Z"
+    },
+    {
+      "name": "Malrboro Advance 10 Pc",
+      "slug": "malrboro-advance-10-pc",
+      "price": 240,
+      "category": "cigarettes",
+      "image": "mlbr.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:51:07.180Z"
+    },
+    {
+      "name": "Boyler Chicken Khichuri",
+      "slug": "boyler-chicken-khichuri",
+      "price": 200,
+      "category": "snacks",
+      "image": "khichuri.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-04-29T15:44:10.856Z"
+    },
+    {
+      "name": "Benson & Hedges Switch Full Pack",
+      "slug": "benson-hedges-switch-full-pack",
+      "price": 450,
+      "category": "cigarettes",
+      "image": "bnsn.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-24T17:26:41.295Z"
+    },
+    {
+      "name": "Malrboro Gold Full Pack",
+      "slug": "malrboro-gold-full-pack",
+      "price": 450,
+      "category": "cigarettes",
+      "image": "mlbra.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:54:14.985Z"
+    },
+    {
+      "name": "Lays Chips 16gm",
+      "slug": "lays-chips-16gm",
+      "price": 25,
+      "category": "daily",
+      "image": "lays.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-07-19T15:16:13.114Z"
+    },
+    {
+      "name": "Lucky Strike White 10 Pc",
+      "slug": "lucky-strike-white-10-pc",
+      "price": 140,
+      "category": "cigarettes",
+      "image": "ls.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:43:01.545Z"
+    },
+    {
+      "name": "Camel Blue Blast 5 Pc",
+      "slug": "camel-blue-blast-5-pc",
+      "price": 60,
+      "category": "cigarettes",
+      "image": "cml.jpg",
+      "description": "Mind Refreshing",
+      "createdAt": "2025-11-05T17:15:30.010Z"
+    },
+    {
+      "name": "Gold Leaf Switch Full Pack",
+      "slug": "gold-leaf-switch-full-pack",
+      "price": 360,
+      "category": "cigarettes",
+      "image": "glds.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:56:43.861Z"
+    },
+    {
+      "name": "Mojo 1 Liter",
+      "slug": "mojo-1-liter",
+      "price": 75,
+      "category": "daily",
+      "image": "2.jpg",
+      "description": "Cold Drinks",
+      "createdAt": "2026-06-26T18:49:41.366Z"
+    },
+    {
+      "name": "Lucky Strike Red 5 Pc",
+      "slug": "lucky-strike-red-5-pc",
+      "price": 75,
+      "category": "cigarettes",
+      "image": "lsr.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:42:24.997Z"
+    },
+    {
+      "name": "Benson & Hedges Full Packet",
+      "slug": "benson-hedges-full-packet",
+      "price": 450,
+      "category": "cigarettes",
+      "image": "bnsn.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:49:24.647Z"
+    },
+    {
+      "name": "Camel Blue Blust 1 Packet",
+      "slug": "camel-blue-blust-1-packet",
+      "price": 210,
+      "category": "cigarettes",
+      "image": "cml.jpg",
+      "description": "Mind refreshing",
+      "createdAt": "2025-11-05T17:14:54.772Z"
+    },
+    {
+      "name": "Gold Leaf Regular 10 Pc",
+      "slug": "gold-leaf-regular-10-pc",
+      "price": 190,
+      "category": "cigarettes",
+      "image": "gld.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:58:13.258Z"
+    },
+    {
+      "name": "Malrboro Advance Full Pack",
+      "slug": "malrboro-advance-full-pack",
+      "price": 450,
+      "category": "cigarettes",
+      "image": "mlbr.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:51:41.724Z"
+    },
+    {
+      "name": "Gold Leaf Regular Full Pack",
+      "slug": "gold-leaf-regular-full-pack",
+      "price": 360,
+      "category": "cigarettes",
+      "image": "gld.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:58:45.257Z"
+    },
+    {
+      "name": "Gold Leaf Switch 10 Pc",
+      "slug": "gold-leaf-switch-10-pc",
+      "price": 190,
+      "category": "cigarettes",
+      "image": "glds.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:56:11.544Z"
+    },
+    {
+      "name": "Malrboro Gold 10 Pc",
+      "slug": "malrboro-gold-10-pc",
+      "price": 240,
+      "category": "cigarettes",
+      "image": "mlbra.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:53:37.843Z"
+    },
+    {
+      "name": "Malrboro Advance 5 Pc",
+      "slug": "malrboro-advance-5-pc",
+      "price": 125,
+      "category": "cigarettes",
+      "image": "mlbr.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:50:36.037Z"
+    },
+    {
+      "name": "I1 Panther Doted Condom 3pc",
+      "slug": "i1-panther-doted-condom-3pc",
+      "price": 35,
+      "category": "daily",
+      "image": "placeholder.svg",
+      "description": "If available in a store outside.",
+      "createdAt": "2025-11-15T20:47:18.314Z"
+    },
+    {
+      "name": "Benson & Hedges 5 Pc",
+      "slug": "benson-hedges-5-pc",
+      "price": 125,
+      "category": "cigarettes",
+      "image": "bnsn.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:48:12.271Z"
+    },
+    {
+      "name": "Deshi Murgi Khichuri",
+      "slug": "deshi-murgi-khichuri",
+      "price": 210,
+      "category": "snacks",
+      "image": "khichuri.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-04-29T15:57:45.296Z"
+    },
+    {
+      "name": "Chicken Chap & 2 pc Puruta",
+      "slug": "chicken-chap-2-pc-puruta",
+      "price": 190,
+      "category": "snacks",
+      "image": "chickenchap.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-04-29T15:56:29.950Z"
+    },
+    {
+      "name": "Gold Leaf Switch 5 Pc",
+      "slug": "gold-leaf-switch-5-pc",
+      "price": 100,
+      "category": "cigarettes",
+      "image": "glds.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:55:39.605Z"
+    },
+    {
+      "name": "Coca-Cola 600 Ml",
+      "slug": "coca-cola-600-ml",
+      "price": 60,
+      "category": "daily",
+      "image": "1.jpg",
+      "description": "Good",
+      "createdAt": "2025-11-13T18:22:29.610Z"
+    },
+    {
+      "name": "Benson & Hedges 10 Pc",
+      "slug": "benson-hedges-10-pc",
+      "price": 240,
+      "category": "cigarettes",
+      "image": "bnsn.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:48:43.573Z"
+    },
+    {
+      "name": "Richer Rolling Paper",
+      "slug": "richer-rolling-paper",
+      "price": 110,
+      "category": "cigarettes",
+      "image": "rl.jpg",
+      "description": "Rolling Paper \n",
+      "createdAt": "2026-08-22T19:22:03.959Z"
+    },
+    {
+      "name": "Poppers Chips",
+      "slug": "poppers-chips",
+      "price": 25,
+      "category": "daily",
+      "image": "poppers.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-07-19T15:04:46.499Z"
+    },
+    {
+      "name": "Benson & Hedges Switch 10 Pc",
+      "slug": "benson-hedges-switch-10-pc",
+      "price": 240,
+      "category": "cigarettes",
+      "image": "bnsn.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-24T17:25:56.944Z"
+    },
+    {
+      "name": "Mojo 500ml",
+      "slug": "mojo-500ml",
+      "price": 55,
+      "category": "daily",
+      "image": "2.jpg",
+      "description": "If available in a store outside.",
+      "createdAt": "2025-11-15T16:34:45.306Z"
+    },
+    {
+      "name": "Gold Leaf Regular 5 Pc",
+      "slug": "gold-leaf-regular-5-pc",
+      "price": 100,
+      "category": "cigarettes",
+      "image": "gld.jpg",
+      "description": "If the product is available in the store, it will be delivered, otherwise the rider will let you know.",
+      "createdAt": "2026-06-20T17:57:47.623Z"
+    }
+  ],
+  "deliveryAreas": [
+    {
+      "name": "Block A",
+      "charge": 50
+    },
+    {
+      "name": "Block B",
+      "charge": 50
+    },
+    {
+      "name": "Block C",
+      "charge": 50
+    },
+    {
+      "name": "Block D",
+      "charge": 50
+    },
+    {
+      "name": "Block E",
+      "charge": 50
+    },
+    {
+      "name": "Block F",
+      "charge": 55
+    },
+    {
+      "name": "Block G",
+      "charge": 65
+    },
+    {
+      "name": "Block H",
+      "charge": 65
+    },
+    {
+      "name": "Block I",
+      "charge": 65
+    },
+    {
+      "name": "Block J",
+      "charge": 65
+    },
+    {
+      "name": "Block K",
+      "charge": 70
+    },
+    {
+      "name": "Block L",
+      "charge": 70
+    },
+    {
+      "name": "Block M",
+      "charge": 80
+    },
+    {
+      "name": "Block N",
+      "charge": 80
+    }
+  ],
+  "coupons": [
+    {
+      "code": "FORMULA",
+      "type": "fixed",
+      "value": 20,
+      "minOrder": 150,
+      "isActive": true,
+      "expiry": "2026-03-15T00:00:00Z"
+    }
+  ],
+  "categories": [
+    {
+      "slug": "snacks",
+      "name": "Snacks",
+      "image": "/images/categories/fdtest.jpg",
+      "sortOrder": 1
+    },
+    {
+      "slug": "cigarettes",
+      "name": "Cigarettes",
+      "image": "/images/categories/cig.jpg",
+      "sortOrder": 2
+    },
+    {
+      "slug": "daily",
+      "name": "Daily Products",
+      "image": "/images/categories/daily.jpg",
+      "sortOrder": 3
+    }
+  ]
+}

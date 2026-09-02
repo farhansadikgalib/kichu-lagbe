@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Product image unavailable">
+  <rect width="400" height="400" fill="#1c1c1e"/>
+  <g fill="none" stroke="#3a3a3c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="120" y="140" width="160" height="140" rx="16"/>
+    <path d="M150 140v-20a50 50 0 0 1 100 0v20"/>
+  </g>
+  <text x="200" y="330" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" fill="#636366">DeliveryHobe</text>
+</svg>
