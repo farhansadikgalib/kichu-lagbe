@@ -1,4 +1,5 @@
-import { MoonStar, Phone } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, MoonStar } from "lucide-react";
 import { Parallax, Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { CONTACT, SERVICE } from "@/lib/constants";
@@ -24,13 +25,13 @@ export function CtaStrip() {
             </h2>
             <p className="text-muted-foreground text-pretty">
               Snacks, smokes, and essentials at your door in ~{SERVICE.avgDeliveryMinutes} minutes,
-              anywhere in {SERVICE.area}. Order online or just give us a call.
+              anywhere in {SERVICE.area}. Order online in seconds.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Button asChild size="lg">
-                <a href={`tel:${CONTACT.phone}`}>
-                  <Phone aria-hidden /> {CONTACT.phone}
-                </a>
+                <Link href="/category/all">
+                  Order now <ArrowRight aria-hidden />
+                </Link>
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">

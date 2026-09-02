@@ -54,11 +54,6 @@ export function Footer() {
           </p>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li>
-              <a href={`tel:${CONTACT.phone}`} className="transition-colors hover:text-foreground">
-                {CONTACT.phone}
-              </a>
-            </li>
-            <li>
               <a
                 href={`mailto:${CONTACT.email}`}
                 className="transition-colors hover:text-foreground"

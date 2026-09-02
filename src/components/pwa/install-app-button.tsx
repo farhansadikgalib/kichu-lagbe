@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import type { VariantProps } from "class-variance-authority";
@@ -31,7 +30,7 @@ function isStandalone() {
  */
 export function InstallAppButton({
   size = "lg",
-  variant = "secondary",
+  variant = "default",
 }: VariantProps<typeof buttonVariants>) {
   const standalone = useSyncExternalStore(subscribeStandalone, isStandalone, () => false);
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
@@ -75,7 +74,7 @@ export function InstallAppButton({
 
   return (
     <Button size={size} variant={variant} onClick={handleClick}>
-      <Download aria-hidden /> Install app
+      Install app
     </Button>
   );
 }

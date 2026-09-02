@@ -97,7 +97,7 @@ async function seed() {
       {
         name: "Admin",
         email: "admin@deliverylagbe.com",
-        phone: "+8801647506948",
+        phone: "+8801700000000",
         passwordHash,
         role: "admin",
         emailVerified: true,

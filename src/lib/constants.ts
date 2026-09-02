@@ -23,8 +23,7 @@ export function isServiceOpen(date = new Date()): boolean {
 }
 
 export const CONTACT = {
-  phone: "+8801647506948",
-  email: "deliveryhobeofficial@gmail.com",
+  email: "farhansadikgalib@gmail.com",
   address: "Badda, Dhaka, Bangladesh",
 } as const;
 

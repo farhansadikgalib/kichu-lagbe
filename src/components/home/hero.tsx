@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useSyncExternalStore } from "react";
-import { ArrowRight, ChevronDown, Clock, MapPin } from "lucide-react";
+import { ChevronDown, Clock, MapPin } from "lucide-react";
 import { Parallax } from "@/components/motion";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { Button } from "@/components/ui/button";
@@ -131,15 +131,13 @@ export function Hero() {
         </p>
 
         <div data-hero-item className="flex flex-wrap items-center justify-center gap-3">
-          <Button asChild size="lg">
-            <Link href="/category/snacks">
-              Order snacks <ArrowRight aria-hidden />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link href="/category/all">Browse everything</Link>
+          <Button asChild size="lg" variant="outline" className="border-primary dark:border-primary">
+            <Link href="/category/snacks">Order snacks</Link>
           </Button>
           <InstallAppButton />
+          <Button asChild size="lg" variant="outline" className="border-primary dark:border-primary">
+            <Link href="/category/all">Browse everything</Link>
+          </Button>
         </div>
 
         <p data-hero-item className="text-xs text-muted-foreground">
