@@ -8,18 +8,21 @@ const SHOWCASE = [
   {
     slug: "snacks",
     name: "Snacks",
+    emoji: "🍔",
     image: "/images/categories/fdtest.jpg",
     description: "Quick bites & midnight cravings",
   },
   {
     slug: "cigarettes",
     name: "Cigarettes",
+    emoji: "🚬",
     image: "/images/categories/cig.jpg",
     description: "All major brands, delivered fast",
   },
   {
     slug: "daily",
     name: "Daily Products",
+    emoji: "🧃",
     image: "/images/categories/daily.jpg",
     description: "Milk, eggs, bread & everyday essentials",
   },
@@ -31,9 +34,9 @@ export function CategoryShowcase() {
       <Reveal>
         <SectionHeading
           id="categories-heading"
-          eyebrow="Shop by category"
-          title="What do you need tonight?"
-          description="Three categories, one late-night run — pick yours and we'll be on the way."
+          eyebrow="The lineup"
+          title="What's the vibe tonight?"
+          description="Pick a lane — we're already putting our shoes on."
         />
       </Reveal>
 
@@ -60,8 +63,16 @@ export function CategoryShowcase() {
               aria-hidden
               className="absolute inset-0 -translate-x-full overflow-hidden bg-linear-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full motion-reduce:hidden"
             />
+            <span
+              aria-hidden
+              className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full border border-white/15 bg-black/40 text-lg backdrop-blur-md transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
+            >
+              {category.emoji}
+            </span>
             <div className="absolute inset-x-0 bottom-0 p-5">
-              <h3 className="text-lg font-bold text-white">{category.name}</h3>
+              <h3 className="font-heading text-xl font-bold tracking-tight text-white">
+                {category.name}
+              </h3>
               <p className="mt-0.5 text-sm text-white/75">{category.description}</p>
               <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                 Shop now

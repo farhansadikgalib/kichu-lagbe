@@ -19,9 +19,9 @@ export function FeaturedProducts() {
       <Reveal className="flex flex-wrap items-end justify-between gap-4">
         <SectionHeading
           id="featured-heading"
-          eyebrow="Popular right now"
-          title="Featured products"
-          description="A taste of what's rolling out of Badda tonight."
+          eyebrow="Hot right now"
+          title="On repeat in Badda"
+          description="What everyone's ordering tonight — restocked and ready."
         />
         <Button asChild variant="ghost" className="hidden sm:inline-flex">
           <Link href="/category/all">

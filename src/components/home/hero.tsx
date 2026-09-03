@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useSyncExternalStore } from "react";
-import { ChevronDown, Clock, MapPin } from "lucide-react";
+import { ArrowRight, ChevronDown, Clock, MapPin } from "lucide-react";
 import { Parallax } from "@/components/motion";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,12 @@ import { gsap, useGSAP } from "@/lib/motion/gsap";
 import { DURATION, EASE_GSAP, REVEAL } from "@/lib/motion/tokens";
 
 const subscribeNever = () => () => {};
+
+const CRAVE_CHIPS = [
+  { emoji: "🍔", label: "Snacks", href: "/category/snacks" },
+  { emoji: "🚬", label: "Smokes", href: "/category/cigarettes" },
+  { emoji: "🧃", label: "Essentials", href: "/category/daily" },
+] as const;
 
 /** Cinematic home hero: GSAP entrance timeline + parallax night-glow orbs. */
 export function Hero() {
@@ -63,6 +69,7 @@ export function Hero() {
       {/* Night-sky glow, decorative only */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="bg-grid-faint absolute inset-0" />
+        <div className="bg-noise absolute inset-0 opacity-[0.035]" />
         <Parallax amount={0.12} className="absolute -top-24 left-1/2 -translate-x-1/2">
           <div
             data-hero-orb
@@ -120,28 +127,41 @@ export function Hero() {
           data-hero-item
           className="max-w-3xl text-[2.75rem] leading-[1.05] font-bold text-balance sm:text-6xl md:text-7xl"
         >
-          Late night.{" "}
+          Midnight cravings?{" "}
           <span className="bg-linear-to-r from-primary via-amber-200 to-yellow-300 bg-clip-text text-transparent">
-            {BRAND.tagline} ✨
+            Say less.
           </span>
         </h1>
 
         <p data-hero-item className="max-w-xl text-balance text-muted-foreground sm:text-lg">
-          {BRAND.description}
+          {BRAND.tagline} — {BRAND.description.charAt(0).toLowerCase() + BRAND.description.slice(1)}
         </p>
 
         <div data-hero-item className="flex flex-wrap items-center justify-center gap-3">
-          <Button asChild size="lg" variant="outline" className="border-primary dark:border-primary">
-            <Link href="/category/snacks">Order snacks</Link>
+          <Button asChild size="lg">
+            <Link href="/category/all">
+              Start an order <ArrowRight aria-hidden />
+            </Link>
           </Button>
-          <InstallAppButton />
-          <Button asChild size="lg" variant="outline" className="border-primary dark:border-primary">
-            <Link href="/category/all">Browse everything</Link>
-          </Button>
+          <InstallAppButton variant="outline" />
         </div>
 
+        <ul data-hero-item className="flex flex-wrap items-center justify-center gap-2" aria-label="Quick categories">
+          {CRAVE_CHIPS.map((chip) => (
+            <li key={chip.href}>
+              <Link
+                href={chip.href}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-foreground"
+              >
+                <span aria-hidden>{chip.emoji}</span>
+                {chip.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
         <p data-hero-item className="text-xs text-muted-foreground">
-          Average delivery in ~{SERVICE.avgDeliveryMinutes} minutes, right to your door.
+          At your door in ~{SERVICE.avgDeliveryMinutes} min. No minimum, no drama.
         </p>
 
         <div aria-hidden data-hero-item className="pt-4">

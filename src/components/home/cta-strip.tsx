@@ -18,6 +18,7 @@ export function CtaStrip() {
               aria-hidden
               className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/15 via-transparent to-transparent"
             />
+            <div aria-hidden className="bg-noise pointer-events-none absolute inset-0 opacity-[0.04]" />
           <Parallax
             amount={0.15}
             className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2"
@@ -30,11 +31,11 @@ export function CtaStrip() {
               Every night · {SERVICE.window}
             </p>
             <h2 id="cta-heading" className="text-3xl font-bold text-balance sm:text-4xl">
-              Craving something at 2 AM?
+              It&apos;s 2 AM and you&apos;re hungry. <span className="text-primary">We&apos;re up.</span>
             </h2>
             <p className="text-muted-foreground text-pretty">
               Snacks, smokes, and essentials at your door in ~{SERVICE.avgDeliveryMinutes} minutes,
-              anywhere in {SERVICE.area}. Order online in seconds.
+              anywhere in {SERVICE.area}. Ordering takes less time than choosing what to watch.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
               <Button asChild size="lg">

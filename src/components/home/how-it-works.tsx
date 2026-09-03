@@ -67,8 +67,8 @@ export function HowItWorks() {
           <SectionHeading
             id="how-it-works-heading"
             eyebrow="How it works"
-            title="From craving to doorstep"
-            description="Four simple steps between you and your late-night order."
+            title="Craving → doorstep in four taps"
+            description="No calls, no forms, no fuss. This is the whole process."
             align="center"
           />
         </Reveal>

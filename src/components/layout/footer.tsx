@@ -65,10 +65,21 @@ export function Footer() {
           </ul>
         </div>
       </Reveal>
-      <div className="border-t border-border/60 py-4">
-        <p className="container-page text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {BRAND.name}. {BRAND.tagline} ✨
+
+      {/* Oversized wordmark — clipped at the baseline like a signature. */}
+      <div aria-hidden className="container-page overflow-hidden select-none">
+        <p className="font-heading -mb-[0.23em] bg-linear-to-b from-foreground/15 to-foreground/[0.02] bg-clip-text text-[clamp(4rem,15vw,13rem)] leading-none font-bold tracking-tight whitespace-nowrap text-transparent">
+          Kichu<span className="bg-linear-to-b from-primary/40 to-primary/5 bg-clip-text">Lagbe</span>
         </p>
+      </div>
+
+      <div className="border-t border-border/60 py-4">
+        <div className="container-page flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+          <p>
+            © {new Date().getFullYear()} {BRAND.name}. {BRAND.tagline} ✨
+          </p>
+          <p>Made with 🌙 in Badda — open every night.</p>
+        </div>
       </div>
     </footer>
   );

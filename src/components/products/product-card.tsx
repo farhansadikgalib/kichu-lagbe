@@ -82,7 +82,9 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
               <h3 className="line-clamp-2 text-sm leading-snug font-medium">{product.name}</h3>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <p className="text-base font-semibold">{formatBDT(product.price)}</p>
+              <p className="rounded-full bg-primary/10 px-2.5 py-1 text-sm font-bold text-primary tabular-nums">
+                {formatBDT(product.price)}
+              </p>
               <motion.span
                 whileTap={{ scale: 0.92 }}
                 transition={{ duration: DURATION.micro, ease: EASE_MOTION.out }}
