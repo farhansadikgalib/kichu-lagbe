@@ -78,7 +78,6 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {BRAND.name}. {BRAND.tagline} ✨
           </p>
-          <p>Made with 🌙 in Badda — open every night.</p>
         </div>
       </div>
     </footer>
