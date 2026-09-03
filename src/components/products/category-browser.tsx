@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useProducts } from "@/hooks/use-catalog";
-import { CATALOG_TABS, CategoryTabs } from "./category-tabs";
+import { CATALOG_TABS } from "./category-tabs";
 import { ProductGrid } from "./product-grid";
 import { SearchInput } from "./search-input";
 
@@ -10,7 +10,7 @@ interface CategoryBrowserProps {
   slug: string;
 }
 
-/** Client-side catalog browser: category tabs + debounced search + grid. */
+/** Client-side catalog browser: debounced search + grid (category nav lives in the app bar). */
 export function CategoryBrowser({ slug }: CategoryBrowserProps) {
   const [search, setSearch] = useState("");
   const { data: products, error, isLoading, mutate } = useProducts(slug, search);
@@ -31,9 +31,8 @@ export function CategoryBrowser({ slug }: CategoryBrowserProps) {
         </p>
       </header>
 
-      <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <CategoryTabs activeSlug={slug} />
-        <SearchInput onSearch={setSearch} className="md:w-72" />
+      <div className="mt-6">
+        <SearchInput onSearch={setSearch} className="w-full md:max-w-md" />
       </div>
 
       <div className="mt-8">

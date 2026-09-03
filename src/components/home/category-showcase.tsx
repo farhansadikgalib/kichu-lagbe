@@ -55,6 +55,11 @@ export function CategoryShowcase() {
               aria-hidden
               className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent"
             />
+            {/* Diagonal shine sweep across the photo on hover */}
+            <div
+              aria-hidden
+              className="absolute inset-0 -translate-x-full overflow-hidden bg-linear-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full motion-reduce:hidden"
+            />
             <div className="absolute inset-x-0 bottom-0 p-5">
               <h3 className="text-lg font-bold text-white">{category.name}</h3>
               <p className="mt-0.5 text-sm text-white/75">{category.description}</p>

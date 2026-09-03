@@ -125,6 +125,34 @@
   }
 }
 
+/* Animated conic highlight that travels around a 1px-padded wrapper's rim.
+   Falls back to an invisible overlay in browsers without @property. */
+@property --beam-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@theme {
+  --animate-border-beam: border-beam 5s linear infinite;
+
+  @keyframes border-beam {
+    to {
+      --beam-angle: 360deg;
+    }
+  }
+}
+
+@utility bg-border-beam {
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0deg,
+    transparent 300deg,
+    oklch(0.78 0.16 70 / 90%) 330deg,
+    transparent 360deg
+  );
+}
+
 /* Faint hero grid, masked so it fades out toward the edges. */
 @utility bg-grid-faint {
   background-image:

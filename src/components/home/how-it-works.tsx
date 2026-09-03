@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { MapPin, PackageCheck, Search, ShoppingBag } from "lucide-react";
 import { Reveal } from "@/components/motion";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { SERVICE } from "@/lib/constants";
 import { gsap, useGSAP } from "@/lib/motion/gsap";
 import { SectionHeading } from "./section-heading";
@@ -80,11 +81,11 @@ export function HowItWorks() {
             <div data-step-line className="h-full origin-left bg-primary/60" />
           </div>
 
-          <Reveal stagger className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <Reveal stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step, index) => (
-              <div
+              <SpotlightCard
                 key={step.title}
-                className="relative flex flex-col items-center gap-3 text-center"
+                className="flex flex-col items-center gap-3 bg-card/60 p-6 text-center"
               >
                 <div className="relative">
                   <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
@@ -102,7 +103,7 @@ export function HowItWorks() {
                   {step.title}
                 </h3>
                 <p className="max-w-56 text-sm text-muted-foreground">{step.description}</p>
-              </div>
+              </SpotlightCard>
             ))}
           </Reveal>
         </div>

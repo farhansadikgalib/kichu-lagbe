@@ -8,7 +8,16 @@ export function CtaStrip() {
   return (
     <section aria-labelledby="cta-heading" className="container-page py-16 md:py-24">
       <Reveal>
-        <div className="relative overflow-hidden rounded-2xl border border-primary/20 bg-linear-to-br from-primary/15 via-card to-card px-6 py-12 text-center md:px-12 md:py-16">
+        <div className="relative overflow-hidden rounded-2xl border border-primary/20 p-px">
+          <div
+            aria-hidden
+            className="absolute inset-0 animate-border-beam bg-border-beam motion-reduce:animate-none motion-reduce:hidden"
+          />
+          <div className="relative overflow-hidden rounded-[calc(var(--radius-2xl)-1px)] bg-card px-6 py-12 text-center md:px-12 md:py-16">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-linear-to-br from-primary/15 via-transparent to-transparent"
+            />
           <Parallax
             amount={0.15}
             className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2"
@@ -43,6 +52,7 @@ export function CtaStrip() {
                 {CONTACT.email}
               </a>
             </p>
+          </div>
           </div>
         </div>
       </Reveal>
