@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "motion/react";
-import { ImageOff, Trash2 } from "lucide-react";
+import { ImageOff, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { formatBDT } from "@/lib/format";
@@ -15,7 +15,7 @@ interface CartLineItemProps {
   onRemove: () => void;
 }
 
-/** Animated cart row: image, name, unit price, quantity stepper, line total, remove. */
+/** Compact animated cart row: thumbnail, name + unit price, stepper, line total, remove. */
 export function CartLineItem({ item, onQuantityChange, onRemove }: CartLineItemProps) {
   return (
     <motion.li
@@ -24,15 +24,15 @@ export function CartLineItem({ item, onQuantityChange, onRemove }: CartLineItemP
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -24 }}
       transition={{ duration: DURATION.micro, ease: EASE_MOTION.out }}
-      className="flex items-center gap-3 py-4 sm:gap-4"
+      className="flex items-center gap-3 px-4 py-3 sm:px-5"
     >
-      <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+      <div className="relative size-14 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
         {item.imageUrl ? (
           <Image
             src={item.imageUrl}
             alt={item.name}
             fill
-            sizes="64px"
+            sizes="56px"
             className="object-cover"
             // External URLs aren't in images.remotePatterns — bypass the optimizer.
             unoptimized={item.imageUrl.startsWith("http")}
@@ -46,10 +46,10 @@ export function CartLineItem({ item, onQuantityChange, onRemove }: CartLineItemP
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{item.name}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          {formatBDT(item.price)} each
+        <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
+          {formatBDT(item.price)} × {item.quantity}
         </p>
-        <div className="mt-2 sm:hidden">
+        <div className="mt-1.5 sm:hidden">
           <QuantityStepper
             value={item.quantity}
             onChange={onQuantityChange}
@@ -66,7 +66,7 @@ export function CartLineItem({ item, onQuantityChange, onRemove }: CartLineItemP
         />
       </div>
 
-      <p className="w-20 text-right text-sm font-semibold tabular-nums">
+      <p className="w-20 shrink-0 text-right text-sm font-semibold tabular-nums">
         {formatBDT(item.price * item.quantity)}
       </p>
 
@@ -74,11 +74,11 @@ export function CartLineItem({ item, onQuantityChange, onRemove }: CartLineItemP
         type="button"
         variant="ghost"
         size="icon"
-        className="text-muted-foreground hover:text-destructive"
+        className="size-7 shrink-0 text-muted-foreground hover:text-destructive"
         onClick={onRemove}
         aria-label={`Remove ${item.name} from cart`}
       >
-        <Trash2 />
+        <X />
       </Button>
     </motion.li>
   );
