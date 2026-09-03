@@ -96,7 +96,7 @@ async function seed() {
     .values([
       {
         name: "Admin",
-        email: "admin@deliverylagbe.com",
+        email: "admin@kichulagbe.com",
         phone: "+8801700000000",
         passwordHash,
         role: "admin",
@@ -104,7 +104,7 @@ async function seed() {
       },
       {
         name: "Demo Rider",
-        email: "rider@deliverylagbe.com",
+        email: "rider@kichulagbe.com",
         phone: "+8801700000001",
         passwordHash,
         role: "rider",
@@ -112,7 +112,7 @@ async function seed() {
       },
       {
         name: "Demo Customer",
-        email: "customer@deliverylagbe.com",
+        email: "customer@kichulagbe.com",
         phone: "+8801700000002",
         passwordHash,
         role: "customer",

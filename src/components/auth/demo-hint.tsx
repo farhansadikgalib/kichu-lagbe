@@ -1,7 +1,7 @@
 const DEMO_ACCOUNTS = [
-  "admin@deliverylagbe.com",
-  "rider@deliverylagbe.com",
-  "customer@deliverylagbe.com",
+  "admin@kichulagbe.com",
+  "rider@kichulagbe.com",
+  "customer@kichulagbe.com",
 ];
 
 /** Demo credentials box shown under the auth forms. */

@@ -123,17 +123,17 @@ await section("Auth", async () => {
   check("invalid input rejected (422)", r.status === 422);
 
   r = await customer.post("/api/auth/login", {
-    email: "customer@deliverylagbe.com",
+    email: "customer@kichulagbe.com",
     password: PASSWORD,
   });
   check("demo customer login", r.status === 200);
   r = await admin.post("/api/auth/login", {
-    email: "admin@deliverylagbe.com",
+    email: "admin@kichulagbe.com",
     password: PASSWORD,
   });
   check("demo admin login", r.status === 200 && r.json?.data?.role === "admin");
   r = await rider.post("/api/auth/login", {
-    email: "rider@deliverylagbe.com",
+    email: "rider@kichulagbe.com",
     password: PASSWORD,
   });
   check("demo rider login", r.status === 200 && r.json?.data?.role === "rider");
@@ -343,7 +343,7 @@ await section("Order lifecycle (admin + rider)", async () => {
 
 await section("Profile", async () => {
   let r = await customer.get("/api/auth/profile");
-  check("profile readable", r.status === 200 && r.json.data.email === "customer@deliverylagbe.com");
+  check("profile readable", r.status === 200 && r.json.data.email === "customer@kichulagbe.com");
   check("profile does NOT leak passwordHash", !("passwordHash" in (r.json?.data ?? {})));
 
   r = await customer.patch("/api/auth/profile", { name: "Demo Customer" });
