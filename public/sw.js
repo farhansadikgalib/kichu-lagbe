@@ -1,5 +1,5 @@
 /* KichuLagbe service worker — offline shell + static asset caching. */
-const CACHE_NAME = "kl-v5";
+const CACHE_NAME = "kl-v6";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/icon-192.png?v=5", "/icon-512.png?v=5", "/images/logo.png"];
 
@@ -38,6 +38,7 @@ self.addEventListener("fetch", (event) => {
   // Static assets: cache-first.
   if (
     url.pathname.startsWith("/_next/static/") ||
+    url.pathname.startsWith("/_next/image") ||
     url.pathname.startsWith("/images/") ||
     /\.(png|jpg|jpeg|svg|webp|ico|woff2?)$/.test(url.pathname)
   ) {
