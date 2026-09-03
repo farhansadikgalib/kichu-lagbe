@@ -1,6 +1,6 @@
 /**
  * Seed script — idempotent. Run with: npm run db:seed
- * Populates categories, products, delivery areas, coupons, demo users, and app settings.
+ * Populates categories, products, coupons, demo users, and app settings.
  */
 import bcrypt from "bcryptjs";
 import { db } from "./index";
@@ -8,11 +8,11 @@ import {
   appSettings,
   categories,
   coupons,
-  deliveryAreas,
   products,
   users,
 } from "./schema";
 import seedData from "./seed-data.json";
+import { DEFAULT_DELIVERY_CHARGE } from "@/lib/constants";
 
 async function seed() {
   console.log("Seeding KichuLagbe database…");
@@ -55,15 +55,6 @@ async function seed() {
     .onConflictDoNothing()
     .returning({ id: products.id });
   console.log(`products: ${insertedProducts.length} inserted`);
-
-  /* Delivery areas */
-  const existingAreas = await db.select().from(deliveryAreas);
-  if (existingAreas.length === 0) {
-    await db
-      .insert(deliveryAreas)
-      .values(seedData.deliveryAreas.map((a) => ({ name: a.name, charge: a.charge })));
-    console.log(`delivery areas: ${seedData.deliveryAreas.length} inserted`);
-  }
 
   /* Coupons — reference coupon plus a live demo one */
   await db
@@ -122,10 +113,13 @@ async function seed() {
     .onConflictDoNothing();
   console.log("demo users seeded (password: Password123!)");
 
-  /* App settings (from reference product) */
+  /* App settings — delivery mode from the reference product, one flat delivery charge */
   await db
     .insert(appSettings)
-    .values([{ key: "deliveryMode", value: "night" }])
+    .values([
+      { key: "deliveryMode", value: "night" },
+      { key: "deliveryCharge", value: String(DEFAULT_DELIVERY_CHARGE) },
+    ])
     .onConflictDoNothing();
   console.log("app settings seeded");
 

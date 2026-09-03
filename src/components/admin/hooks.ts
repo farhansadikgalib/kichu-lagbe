@@ -6,7 +6,7 @@ import type {
   AdminOrder,
   AdminStats,
   Coupon,
-  DeliveryArea,
+  DeliverySettings,
   OrderStatus,
   ProductWithCategory,
   User,
@@ -41,8 +41,8 @@ export function useAdminUsers(role?: UserRole) {
   );
 }
 
-export function useAdminAreas() {
-  return useSWR<DeliveryArea[]>("/api/admin/areas", swrFetcher);
+export function useAdminDelivery() {
+  return useSWR<DeliverySettings>("/api/admin/delivery", swrFetcher);
 }
 
 /** Human-readable message for a failed mutation (FetchError or unknown). */

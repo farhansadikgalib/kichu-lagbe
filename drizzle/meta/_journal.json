@@ -15,6 +15,13 @@
       "when": 1788368322267,
       "tag": "0001_chilly_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788410602861,
+      "tag": "0002_late_kate_bishop",
+      "breakpoints": true
     }
   ]
 }

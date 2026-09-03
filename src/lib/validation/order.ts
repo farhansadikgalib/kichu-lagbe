@@ -4,7 +4,6 @@ import { phoneSchema } from "./common";
 export const checkoutSchema = z.object({
   customerName: z.string().trim().min(2, "Name is required").max(80),
   phone: phoneSchema,
-  areaId: z.number().int().positive("Select a delivery area"),
   addressDetails: z.string().trim().min(5, "Enter your full address").max(500),
   note: z.string().trim().max(500).optional(),
   couponCode: z.string().trim().max(40).optional(),

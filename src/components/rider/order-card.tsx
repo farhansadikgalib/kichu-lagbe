@@ -57,11 +57,7 @@ export function RiderOrderCard({ order, actions }: RiderOrderCardProps) {
         </div>
         <p className="flex gap-1.5 text-muted-foreground">
           <MapPinIcon aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-          <span>
-            <span className="font-medium text-foreground">{order.areaName}</span>
-            {" — "}
-            {order.addressDetails}
-          </span>
+          <span>{order.addressDetails}</span>
         </p>
         {order.note && (
           <p className="flex gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-amber-400">

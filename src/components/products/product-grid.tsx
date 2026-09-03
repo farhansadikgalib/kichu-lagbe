@@ -1,15 +1,20 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CircleAlert, PackageSearch, RotateCcw, type LucideIcon } from "lucide-react";
+import {
+  CircleAlert,
+  PackageSearch,
+  RotateCcw,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { ProductWithCategory } from "@/types";
 import { ProductCard } from "./product-card";
 
-const GRID_CLASSES = "grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4";
+const GRID_CLASSES =
+  "grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4";
 
 interface ProductGridProps {
   products: ProductWithCategory[] | undefined;
@@ -33,7 +38,11 @@ export function ProductGrid({
 }: ProductGridProps) {
   if (isLoading) {
     return (
-      <div className={cn(GRID_CLASSES, className)} aria-busy="true" aria-label="Loading products">
+      <div
+        className={cn(GRID_CLASSES, className)}
+        aria-busy="true"
+        aria-label="Loading products"
+      >
         {Array.from({ length: skeletonCount }, (_, i) => (
           <ProductCardSkeleton key={i} />
         ))}
@@ -82,17 +91,17 @@ export function ProductGrid({
 
 function ProductCardSkeleton() {
   return (
-    <Card size="sm" className="gap-3 pt-0">
+    <div className="overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/10">
       <Skeleton className="aspect-square rounded-none" />
-      <div className="space-y-2 px-3 pb-1">
-        <Skeleton className="h-3 w-1/3" />
-        <Skeleton className="h-4 w-3/4" />
-        <div className="flex items-center justify-between pt-1">
+      <div className="space-y-2 p-3 sm:p-3.5">
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-4 w-1/2" />
+        <div className="flex items-center justify-between pt-2">
           <Skeleton className="h-5 w-14" />
-          <Skeleton className="h-7 w-16" />
+          <Skeleton className="size-9 rounded-full" />
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -104,7 +113,13 @@ interface GridStatusProps {
   children?: ReactNode;
 }
 
-function GridStatus({ icon: Icon, title, description, className, children }: GridStatusProps) {
+function GridStatus({
+  icon: Icon,
+  title,
+  description,
+  className,
+  children,
+}: GridStatusProps) {
   return (
     <div
       role="status"
@@ -118,7 +133,9 @@ function GridStatus({ icon: Icon, title, description, className, children }: Gri
       </div>
       <div className="space-y-1">
         <p className="font-medium">{title}</p>
-        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
       {children}
     </div>

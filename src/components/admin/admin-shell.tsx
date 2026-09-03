@@ -5,8 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Bike,
   LayoutDashboard,
-  MapPin,
   Menu,
   Package,
   ShoppingBasket,
@@ -30,7 +30,7 @@ const NAV_ITEMS = [
   { href: "/admin/products", label: "Products", icon: ShoppingBasket },
   { href: "/admin/coupons", label: "Coupons", icon: TicketPercent },
   { href: "/admin/users", label: "Users", icon: Users },
-  { href: "/admin/areas", label: "Areas", icon: MapPin },
+  { href: "/admin/delivery", label: "Delivery", icon: Bike },
 ] as const;
 
 function isActive(pathname: string, href: string) {

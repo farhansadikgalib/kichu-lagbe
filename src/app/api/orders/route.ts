@@ -1,6 +1,7 @@
 import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { coupons, deliveryAreas, orderItems, orders, products } from "@/lib/db/schema";
+import { coupons, orderItems, orders, products } from "@/lib/db/schema";
+import { getDeliveryCharge } from "@/lib/db/queries/settings";
 import { requireUser } from "@/lib/auth/guards";
 import { couponDiscount } from "@/lib/pricing";
 import { checkoutSchema } from "@/lib/validation/order";
@@ -29,10 +30,9 @@ export async function POST(request: Request) {
     const session = await requireUser();
     const input = checkoutSchema.parse(await request.json());
 
-    const area = await db.query.deliveryAreas.findFirst({
-      where: eq(deliveryAreas.id, input.areaId),
-    });
-    if (!area || !area.isActive) throw new ApiError("Select a valid delivery area.", 422);
+    // One flat charge across the coverage area, read at order time so an
+    // admin change applies to the next order without a deploy.
+    const deliveryCharge = await getDeliveryCharge();
 
     const productIds = input.items.map((i) => i.productId);
     const dbProducts = await db.query.products.findMany({
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
       couponCode = coupon!.code;
     }
 
-    const total = subtotal + area.charge - discount;
+    const total = subtotal + deliveryCharge - discount;
 
     const order = await db.transaction(async (tx) => {
       const [created] = await tx
@@ -84,12 +84,10 @@ export async function POST(request: Request) {
           userId: session.sub,
           customerName: input.customerName,
           phone: input.phone,
-          areaId: area.id,
-          areaName: area.name,
           addressDetails: input.addressDetails,
           note: input.note || null,
           subtotal,
-          deliveryCharge: area.charge,
+          deliveryCharge,
           discount,
           total,
           couponCode,

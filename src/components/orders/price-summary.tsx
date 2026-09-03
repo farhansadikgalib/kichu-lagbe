@@ -3,7 +3,7 @@ import { formatBDT } from "@/lib/format";
 
 interface PriceSummaryProps {
   subtotal: number;
-  /** `null` when the delivery charge is not known yet (no area selected). */
+  /** `null` while the delivery charge is still loading. */
   deliveryCharge: number | null;
   discount?: number;
   couponCode?: string | null;

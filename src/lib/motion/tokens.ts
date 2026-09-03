@@ -30,6 +30,8 @@ export const REVEAL = {
   distance: 28,
   /** Stagger between sibling reveals in seconds. */
   stagger: 0.08,
-  /** ScrollTrigger start position for content reveals. */
+  /** Fraction of the viewport height an element's top must cross to reveal. */
+  startFraction: 0.8,
+  /** The same line as a ScrollTrigger start position. */
   start: "top 80%",
 } as const;

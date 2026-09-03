@@ -6,6 +6,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { normalizePhone } from "@/lib/validation/common";
 import { apiMutate, FetchError } from "@/lib/api/fetcher";
 import { updateProfileSchema } from "@/lib/validation/auth";
 import type { User } from "@/types";
@@ -19,7 +21,7 @@ interface ProfileFormProps {
 /** Edit name and phone number. */
 export function ProfileForm({ profile, onSaved }: ProfileFormProps) {
   const [name, setName] = useState(profile.name);
-  const [phone, setPhone] = useState(profile.phone ?? "");
+  const [phone, setPhone] = useState(normalizePhone(profile.phone ?? ""));
   const [errors, setErrors] = useState<{ name?: string; phone?: string }>({});
   const [saving, setSaving] = useState(false);
 
@@ -44,11 +46,16 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps) {
     setErrors({});
     setSaving(true);
     try {
-      await apiMutate<User>("/api/auth/profile", { method: "PATCH", body: parsed.data });
+      await apiMutate<User>("/api/auth/profile", {
+        method: "PATCH",
+        body: parsed.data,
+      });
       toast.success("Profile updated");
       onSaved();
     } catch (err) {
-      toast.error(err instanceof FetchError ? err.message : "Could not update profile");
+      toast.error(
+        err instanceof FetchError ? err.message : "Could not update profile",
+      );
     } finally {
       setSaving(false);
     }
@@ -68,25 +75,30 @@ export function ProfileForm({ profile, onSaved }: ProfileFormProps) {
             aria-describedby={errors.name ? "profile-name-error" : undefined}
           />
           {errors.name && (
-            <p id="profile-name-error" role="alert" className="text-xs text-destructive">
+            <p
+              id="profile-name-error"
+              role="alert"
+              className="text-xs text-destructive"
+            >
               {errors.name}
             </p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="profile-phone">Phone number</Label>
-          <Input
+          <PhoneInput
             id="profile-phone"
-            type="tel"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="01XXXXXXXXX"
-            autoComplete="tel"
+            onValueChange={setPhone}
             aria-invalid={errors.phone ? true : undefined}
             aria-describedby={errors.phone ? "profile-phone-error" : undefined}
           />
           {errors.phone && (
-            <p id="profile-phone-error" role="alert" className="text-xs text-destructive">
+            <p
+              id="profile-phone-error"
+              role="alert"
+              className="text-xs text-destructive"
+            >
               {errors.phone}
             </p>
           )}

@@ -8,12 +8,20 @@ function normalizeUrl(raw: string) {
   return url.toString();
 }
 
+// Local Postgres usually has TLS off; hosted ones (Aiven) require it with a
+// self-signed CA. `sslmode=disable` opts out, anything else opts in.
+function sslOption(raw: string) {
+  return new URL(raw).searchParams.get("sslmode") === "disable"
+    ? false
+    : { rejectUnauthorized: false };
+}
+
 export default defineConfig({
   schema: "./src/lib/db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: {
     url: normalizeUrl(process.env.DATABASE_URL!),
-    ssl: { rejectUnauthorized: false },
+    ssl: sslOption(process.env.DATABASE_URL!),
   },
 });

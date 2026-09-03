@@ -272,7 +272,7 @@ export default function AdminOrdersPage() {
                     {detailOrder.customerName} · {detailOrder.phone}
                   </p>
                   <p className="text-muted-foreground">
-                    {detailOrder.addressDetails}, {detailOrder.areaName}
+                    {detailOrder.addressDetails}
                   </p>
                   {detailOrder.note && (
                     <p className="mt-1 text-muted-foreground">

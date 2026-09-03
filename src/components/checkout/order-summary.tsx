@@ -55,7 +55,7 @@ export function OrderSummary({
         />
         {deliveryCharge === null && (
           <p className="text-xs text-muted-foreground">
-            Select a delivery area to see the delivery charge.
+            Fetching the delivery charge…
           </p>
         )}
       </CardContent>

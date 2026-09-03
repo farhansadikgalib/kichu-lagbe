@@ -1,69 +1,107 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import useSWR from "swr";
+import { ChevronDown, ImageOff, Plus, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
-import { Reveal } from "@/components/motion";
 import { useCartHydrated } from "@/components/cart/use-cart-hydrated";
 import { CouponField } from "@/components/checkout/coupon-field";
-import { OrderSummary } from "@/components/checkout/order-summary";
-import { PaymentMethod } from "@/components/checkout/payment-method";
-import { useDeliveryAreas } from "@/hooks/use-catalog";
+import { useDeliveryCharge } from "@/hooks/use-catalog";
 import { useSession } from "@/hooks/use-session";
-import { apiMutate, FetchError } from "@/lib/api/fetcher";
+import { apiMutate, FetchError, swrFetcher } from "@/lib/api/fetcher";
+import { SERVICE } from "@/lib/constants";
 import { formatBDT, formatOrderNumber } from "@/lib/format";
+import { normalizePhone } from "@/lib/validation/common";
 import { checkoutSchema } from "@/lib/validation/order";
-import { selectCartCount, selectCartSubtotal, useCartStore } from "@/stores/cart-store";
-import type { CouponValidationResult, Order } from "@/types";
+import { cn } from "@/lib/utils";
+import {
+  selectCartCount,
+  selectCartSubtotal,
+  useCartStore,
+} from "@/stores/cart-store";
+import type { CouponValidationResult, Order, User } from "@/types";
 
 interface FieldErrors {
   customerName?: string;
   phone?: string;
-  areaId?: string;
   addressDetails?: string;
   note?: string;
 }
 
-/** Checkout page: delivery details form, coupon, live totals, and order placement. */
+const itemsLabel = (count: number) =>
+  `${count} ${count === 1 ? "item" : "items"}`;
+
+function FieldError({ id, children }: { id: string; children?: string }) {
+  if (!children) return null;
+  return (
+    <p id={id} role="alert" className="text-xs text-destructive">
+      {children}
+    </p>
+  );
+}
+
+/** Small inline "reveal" link used for the optional note and coupon. */
+function RevealButton({
+  icon: Icon,
+  onClick,
+  children,
+}: {
+  icon: typeof Plus;
+  onClick: () => void;
+  children: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      <Icon className="size-4" aria-hidden />
+      {children}
+    </button>
+  );
+}
+
+/** Single-card checkout: details, order, totals. Optional bits stay hidden until asked for. */
 export function CheckoutView() {
   const router = useRouter();
   const { user } = useSession();
-  const { data: areas, error: areasError, isLoading: areasLoading, mutate: retryAreas } =
-    useDeliveryAreas();
+  // Saved profile phone pre-fills the field; the session user only carries a name.
+  const { data: profile } = useSWR<User>(
+    user ? "/api/auth/profile" : null,
+    swrFetcher,
+  );
+  const {
+    data: delivery,
+    error: deliveryError,
+    mutate: retryDelivery,
+  } = useDeliveryCharge();
 
   const items = useCartStore((s) => s.items);
   const count = useCartStore(selectCartCount);
   const subtotal = useCartStore(selectCartSubtotal);
   const clearCart = useCartStore((s) => s.clear);
 
-  // Name defaults to the session user's name until the field is edited.
+  // Name and phone default to the account until the field is edited.
   const [nameInput, setNameInput] = useState<string | null>(null);
+  const [phoneInput, setPhoneInput] = useState<string | null>(null);
   const name = nameInput ?? user?.name ?? "";
-  const [phone, setPhone] = useState("");
-  const [areaId, setAreaId] = useState("");
+  const phone =
+    phoneInput ?? (profile?.phone ? normalizePhone(profile.phone) : "");
   const [address, setAddress] = useState("");
   const [note, setNote] = useState("");
+  const [showNote, setShowNote] = useState(false);
+  const [showCoupon, setShowCoupon] = useState(false);
   const [coupon, setCoupon] = useState<CouponValidationResult | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -72,12 +110,12 @@ export function CheckoutView() {
   const hydrated = useCartHydrated();
   const placedRef = useRef(false);
   useEffect(() => {
-    if (hydrated && items.length === 0 && !placedRef.current) router.replace("/cart");
+    if (hydrated && items.length === 0 && !placedRef.current)
+      router.replace("/cart");
   }, [hydrated, items.length, router]);
 
-  const activeAreas = areas?.filter((a) => a.isActive) ?? [];
-  const selectedArea = activeAreas.find((a) => String(a.id) === areaId) ?? null;
-  const deliveryCharge = selectedArea ? selectedArea.charge : null;
+  // One flat charge across the coverage area; null until it has loaded.
+  const deliveryCharge = delivery?.charge ?? null;
   const discount = coupon ? Math.min(coupon.discount, subtotal) : 0;
   const total = subtotal + (deliveryCharge ?? 0) - discount;
 
@@ -86,21 +124,23 @@ export function CheckoutView() {
     const parsed = checkoutSchema.safeParse({
       customerName: name,
       phone,
-      areaId: areaId ? Number(areaId) : 0,
       addressDetails: address,
       note: note.trim() || undefined,
       couponCode: coupon?.code,
-      items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+      items: items.map((i) => ({
+        productId: i.productId,
+        quantity: i.quantity,
+      })),
     });
     if (!parsed.success) {
       const fe = z.flattenError(parsed.error).fieldErrors;
       setErrors({
         customerName: fe.customerName?.[0],
         phone: fe.phone?.[0],
-        areaId: fe.areaId?.[0],
         addressDetails: fe.addressDetails?.[0],
         note: fe.note?.[0],
       });
+      if (fe.note) setShowNote(true);
       toast.error("Please fix the highlighted fields");
       return;
     }
@@ -108,193 +148,294 @@ export function CheckoutView() {
     setErrors({});
     setSubmitting(true);
     try {
-      const order = await apiMutate<Order>("/api/orders", { body: parsed.data });
+      const order = await apiMutate<Order>("/api/orders", {
+        body: parsed.data,
+      });
       placedRef.current = true;
       clearCart();
       toast.success(`Order ${formatOrderNumber(order.orderNumber)} placed!`, {
-        description: "We'll confirm it shortly — track progress on the order page.",
+        description:
+          "We'll confirm it shortly. Track progress on the order page.",
       });
       router.push(`/orders/${order.id}`);
     } catch (err) {
-      toast.error(err instanceof FetchError ? err.message : "Could not place the order");
+      toast.error(
+        err instanceof FetchError ? err.message : "Could not place the order",
+      );
       setSubmitting(false);
     }
   }
 
   if (!hydrated || items.length === 0) {
     return (
-      <div className="container-page py-8 md:py-12">
-        <Skeleton className="h-8 w-44" />
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
-          <Skeleton className="h-96 w-full" />
-          <Skeleton className="h-72 w-full" />
-        </div>
+      <div className="container-page max-w-xl py-6 md:py-10">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="mt-2 h-9 w-48" />
+        <Skeleton className="mt-5 h-[26rem] w-full" />
       </div>
     );
   }
 
+  const placeLabel = submitting
+    ? "Placing order…"
+    : `Place order · ${formatBDT(total)}`;
+
   return (
-    <div className="container-page py-8 md:py-12">
-      <Reveal>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Checkout</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Cash on delivery — average delivery in ~30 minutes.
-        </p>
-      </Reveal>
+    <form onSubmit={handleSubmit} noValidate>
+      <div className="container-page max-w-xl pt-5 pb-36 md:pt-10 md:pb-16">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold tracking-wide text-primary uppercase">
+              Checkout
+            </p>
+            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+              Almost there{" "}
+              <span className="text-lg font-medium text-muted-foreground tabular-nums">
+                · {itemsLabel(count)}
+              </span>
+            </h1>
+          </div>
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+          >
+            <Link href="/cart">Edit bag</Link>
+          </Button>
+        </div>
 
-      <form onSubmit={handleSubmit} noValidate>
-        <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1fr_380px]">
-          <Reveal>
-            <Card>
-              <CardHeader>
-                <CardTitle>Delivery details</CardTitle>
-                <CardDescription>Where should we bring your order?</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="checkout-name">Full name</Label>
-                    <Input
-                      id="checkout-name"
-                      value={name}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      autoComplete="name"
-                      aria-invalid={errors.customerName ? true : undefined}
-                      aria-describedby={errors.customerName ? "checkout-name-error" : undefined}
-                    />
-                    {errors.customerName && (
-                      <p id="checkout-name-error" role="alert" className="text-xs text-destructive">
-                        {errors.customerName}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="checkout-phone">Phone number</Label>
-                    <Input
-                      id="checkout-phone"
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="01XXXXXXXXX"
-                      autoComplete="tel"
-                      aria-invalid={errors.phone ? true : undefined}
-                      aria-describedby={errors.phone ? "checkout-phone-error" : undefined}
-                    />
-                    {errors.phone && (
-                      <p id="checkout-phone-error" role="alert" className="text-xs text-destructive">
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-                </div>
+        <Card className="mt-4 gap-0 p-0">
+          {/* Who and where */}
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="checkout-name">Name</Label>
+                <Input
+                  id="checkout-name"
+                  value={name}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  autoComplete="name"
+                  placeholder="Your name"
+                  aria-invalid={errors.customerName ? true : undefined}
+                  aria-describedby={
+                    errors.customerName ? "checkout-name-error" : undefined
+                  }
+                />
+                <FieldError id="checkout-name-error">
+                  {errors.customerName}
+                </FieldError>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="checkout-phone">Phone</Label>
+                <PhoneInput
+                  id="checkout-phone"
+                  value={phone}
+                  onValueChange={setPhoneInput}
+                  aria-invalid={errors.phone ? true : undefined}
+                  aria-describedby={
+                    errors.phone ? "checkout-phone-error" : undefined
+                  }
+                />
+                <FieldError id="checkout-phone-error">
+                  {errors.phone}
+                </FieldError>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="checkout-address">
+                Address{" "}
+                <span className="font-normal text-muted-foreground">
+                  in {SERVICE.area}
+                </span>
+              </Label>
+              <Input
+                id="checkout-address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="House, road, block, flat"
+                autoComplete="street-address"
+                aria-invalid={errors.addressDetails ? true : undefined}
+                aria-describedby={
+                  errors.addressDetails ? "checkout-address-error" : undefined
+                }
+              />
+              <FieldError id="checkout-address-error">
+                {errors.addressDetails}
+              </FieldError>
+            </div>
+            {showNote ? (
+              <div className="space-y-1.5">
+                <Label htmlFor="checkout-note">Note for the rider</Label>
+                <Input
+                  id="checkout-note"
+                  autoFocus
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  placeholder="Gate code, landmark, call on arrival"
+                  aria-invalid={errors.note ? true : undefined}
+                  aria-describedby={
+                    errors.note ? "checkout-note-error" : undefined
+                  }
+                />
+                <FieldError id="checkout-note-error">{errors.note}</FieldError>
+              </div>
+            ) : (
+              <RevealButton icon={Plus} onClick={() => setShowNote(true)}>
+                Add a note for the rider
+              </RevealButton>
+            )}
+          </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="checkout-area">Delivery area</Label>
-                  <Select value={areaId} onValueChange={setAreaId}>
-                    <SelectTrigger
-                      id="checkout-area"
-                      className="w-full"
-                      aria-invalid={errors.areaId ? true : undefined}
-                      aria-describedby={errors.areaId ? "checkout-area-error" : undefined}
-                    >
-                      <SelectValue
-                        placeholder={areasLoading ? "Loading areas…" : "Select your area"}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {activeAreas.map((area) => (
-                        <SelectItem key={area.id} value={String(area.id)}>
-                          {area.name} — {formatBDT(area.charge)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.areaId && (
-                    <p id="checkout-area-error" role="alert" className="text-xs text-destructive">
-                      {errors.areaId}
-                    </p>
-                  )}
-                  {areasError && (
-                    <p className="text-xs text-destructive">
-                      Couldn&apos;t load delivery areas.{" "}
-                      <Button
-                        type="button"
-                        variant="link"
-                        size="xs"
-                        className="h-auto p-0"
-                        onClick={() => retryAreas()}
-                      >
-                        Retry
-                      </Button>
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="checkout-address">Address details</Label>
-                  <Textarea
-                    id="checkout-address"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Block, road, building, apartment…"
-                    rows={3}
-                    autoComplete="street-address"
-                    aria-invalid={errors.addressDetails ? true : undefined}
-                    aria-describedby={errors.addressDetails ? "checkout-address-error" : undefined}
+          {/* What */}
+          <div className="border-t border-border/70 px-4 py-3 sm:px-5">
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+                <span className="font-medium">
+                  Your order{" "}
+                  <span className="font-normal text-muted-foreground tabular-nums">
+                    · {itemsLabel(count)}
+                  </span>
+                </span>
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  Details
+                  <ChevronDown
+                    className="size-4 transition-transform duration-200 group-open:rotate-180"
+                    aria-hidden
                   />
-                  {errors.addressDetails && (
-                    <p id="checkout-address-error" role="alert" className="text-xs text-destructive">
-                      {errors.addressDetails}
+                </span>
+              </summary>
+              <ul className="mt-2 space-y-1.5">
+                {items.map((item) => (
+                  <li
+                    key={item.productId}
+                    className="flex items-center gap-2.5 text-sm"
+                  >
+                    <div className="relative size-7 shrink-0 overflow-hidden rounded-md bg-muted">
+                      {item.imageUrl ? (
+                        <Image
+                          src={item.imageUrl}
+                          alt=""
+                          fill
+                          sizes="28px"
+                          className="object-cover"
+                          unoptimized={item.imageUrl.startsWith("http")}
+                        />
+                      ) : (
+                        <span className="flex size-full items-center justify-center text-muted-foreground">
+                          <ImageOff className="size-3" aria-hidden />
+                        </span>
+                      )}
+                    </div>
+                    <p className="min-w-0 flex-1 truncate">
+                      {item.name}
+                      <span className="text-muted-foreground tabular-nums">
+                        {" "}
+                        × {item.quantity}
+                      </span>
                     </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="checkout-note">
-                    Note for the rider{" "}
-                    <span className="font-normal text-muted-foreground">(optional)</span>
-                  </Label>
-                  <Textarea
-                    id="checkout-note"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="Gate code, landmark, call on arrival…"
-                    rows={2}
-                    aria-invalid={errors.note ? true : undefined}
-                  />
-                  {errors.note && (
-                    <p role="alert" className="text-xs text-destructive">
-                      {errors.note}
+                    <p className="shrink-0 tabular-nums">
+                      {formatBDT(item.price * item.quantity)}
                     </p>
-                  )}
-                </div>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </div>
 
-                <Separator />
-                <PaymentMethod />
-              </CardContent>
-            </Card>
-          </Reveal>
-
-          <Reveal delay={0.1}>
-            <OrderSummary
-              itemCount={count}
-              subtotal={subtotal}
-              deliveryCharge={deliveryCharge}
-              discount={discount}
-              couponCode={coupon?.code}
-              total={total}
-              submitting={submitting}
-            >
+          {/* Coupon and totals */}
+          <div className="space-y-3 border-t border-border/70 p-4 sm:p-5">
+            {showCoupon || coupon ? (
               <CouponField
                 subtotal={subtotal}
                 applied={coupon}
                 onApply={setCoupon}
                 onRemove={() => setCoupon(null)}
               />
-            </OrderSummary>
-          </Reveal>
-        </div>
-      </form>
-    </div>
+            ) : (
+              <RevealButton icon={Ticket} onClick={() => setShowCoupon(true)}>
+                Have a coupon?
+              </RevealButton>
+            )}
+
+            <dl className="space-y-1.5 text-sm">
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">Subtotal</dt>
+                <dd className="tabular-nums">{formatBDT(subtotal)}</dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-muted-foreground">
+                  Delivery · {SERVICE.area}
+                </dt>
+                <dd className="tabular-nums">
+                  {deliveryError ? (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="xs"
+                      className="h-auto p-0 text-destructive"
+                      onClick={() => retryDelivery()}
+                    >
+                      Retry
+                    </Button>
+                  ) : deliveryCharge === null ? (
+                    <Skeleton className="inline-block h-4 w-10 align-middle" />
+                  ) : (
+                    formatBDT(deliveryCharge)
+                  )}
+                </dd>
+              </div>
+              {discount > 0 && (
+                <div className="flex items-center justify-between gap-4 text-emerald-400">
+                  <dt>Coupon{coupon?.code ? ` · ${coupon.code}` : ""}</dt>
+                  <dd className="tabular-nums">−{formatBDT(discount)}</dd>
+                </div>
+              )}
+              <div className="flex items-baseline justify-between gap-4 border-t border-border pt-2.5">
+                <dt className="font-semibold">Total</dt>
+                <dd className="font-heading text-2xl font-bold tabular-nums">
+                  {formatBDT(total)}
+                </dd>
+              </div>
+            </dl>
+
+            <Button
+              type="submit"
+              size="lg"
+              className="hidden w-full md:inline-flex"
+              disabled={submitting}
+            >
+              {placeLabel}
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              💵 Cash at the door · ⚡ ~{SERVICE.avgDeliveryMinutes} min ·
+              prices confirmed by the server
+            </p>
+          </div>
+        </Card>
+      </div>
+
+      {/* Phone: place-order stays glued above the bottom nav. */}
+      <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+4rem)] z-40 px-3 md:hidden">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={submitting}
+          className={cn(
+            "h-13 w-full justify-between rounded-2xl px-5 text-base shadow-xl shadow-primary/30",
+            submitting && "justify-center",
+          )}
+        >
+          {submitting ? (
+            placeLabel
+          ) : (
+            <>
+              <span>Place order</span>
+              <span className="tabular-nums">{formatBDT(total)}</span>
+            </>
+          )}
+        </Button>
+      </div>
+    </form>
   );
 }

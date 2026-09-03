@@ -77,16 +77,6 @@ export const products = pgTable(
   (t) => [uniqueIndex("products_slug_idx").on(t.slug)],
 );
 
-/* -------------------------------- Delivery -------------------------------- */
-
-export const deliveryAreas = pgTable("delivery_areas", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  /** Delivery charge in BDT. */
-  charge: integer("charge").notNull(),
-  isActive: boolean("is_active").notNull().default(true),
-});
-
 /* --------------------------------- Coupons -------------------------------- */
 
 export const coupons = pgTable(
@@ -117,10 +107,6 @@ export const orders = pgTable("orders", {
   status: orderStatus("status").notNull().default("pending"),
   customerName: text("customer_name").notNull(),
   phone: text("phone").notNull(),
-  areaId: integer("area_id")
-    .notNull()
-    .references(() => deliveryAreas.id),
-  areaName: text("area_name").notNull(),
   addressDetails: text("address_details").notNull(),
   note: text("note"),
   subtotal: integer("subtotal").notNull(),
@@ -196,10 +182,6 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
     fields: [orders.riderId],
     references: [users.id],
     relationName: "riderOrders",
-  }),
-  area: one(deliveryAreas, {
-    fields: [orders.areaId],
-    references: [deliveryAreas.id],
   }),
   items: many(orderItems),
 }));

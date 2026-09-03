@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { useRef, useSyncExternalStore } from "react";
-import { ArrowRight, ChevronDown, Clock, MapPin } from "lucide-react";
+import { ChevronDown, Clock, MapPin, ShoppingBag } from "lucide-react";
 import { Parallax } from "@/components/motion";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { Button } from "@/components/ui/button";
 import { BRAND, isServiceOpen, SERVICE } from "@/lib/constants";
 import { gsap, useGSAP } from "@/lib/motion/gsap";
-import { DURATION, EASE_GSAP, REVEAL } from "@/lib/motion/tokens";
+import { REVEAL } from "@/lib/motion/tokens";
 
 const subscribeNever = () => () => {};
 
@@ -18,7 +18,17 @@ const CRAVE_CHIPS = [
   { emoji: "🧃", label: "Essentials", href: "/category/daily" },
 ] as const;
 
-/** Cinematic home hero: GSAP entrance timeline + parallax night-glow orbs. */
+// The entrance is plain CSS so it starts at first paint instead of waiting for
+// hydration — a JS-driven entrance would hide the already-visible server HTML
+// and replay it, which reads as a flash. Content items rise in after the orbs.
+const ENTRANCE_ITEM = "motion-safe:animate-fade-up motion-reduce:animate-fade";
+const ENTRANCE_START_S = 0.15;
+const entranceDelay = (index: number) => ({
+  animationDelay: `${(ENTRANCE_START_S + index * REVEAL.stagger).toFixed(2)}s`,
+});
+const ORB_ENTRANCE = { animationDuration: "1.2s" };
+
+/** Cinematic home hero: CSS entrance + parallax night-glow orbs + scroll scrub. */
 export function Hero() {
   const ref = useRef<HTMLElement>(null);
   // Time-dependent, so resolved client-side only to avoid a hydration mismatch.
@@ -35,16 +45,6 @@ export function Hero() {
 
       const mm = gsap.matchMedia();
       mm.add("(prefers-reduced-motion: no-preference)", () => {
-        gsap
-          .timeline({ defaults: { ease: EASE_GSAP.out } })
-          .fromTo("[data-hero-orb]", { opacity: 0 }, { opacity: 1, duration: 1.2 })
-          .fromTo(
-            "[data-hero-item]",
-            { opacity: 0, y: REVEAL.distance },
-            { opacity: 1, y: 0, duration: DURATION.reveal, stagger: REVEAL.stagger },
-            "<0.15",
-          );
-
         // Decorative scrub: content drifts up and dims as the hero scrolls out.
         gsap.to("[data-hero-content]", {
           yPercent: -10,
@@ -52,13 +52,6 @@ export function Hero() {
           ease: "none",
           scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: true },
         });
-      });
-      mm.add("(prefers-reduced-motion: reduce)", () => {
-        gsap.fromTo(
-          "[data-hero-orb], [data-hero-item]",
-          { opacity: 0 },
-          { opacity: 1, duration: DURATION.reveal },
-        );
       });
     },
     { scope: ref },
@@ -72,15 +65,21 @@ export function Hero() {
         <div className="bg-noise absolute inset-0 opacity-[0.035]" />
         <Parallax amount={0.12} className="absolute -top-24 left-1/2 -translate-x-1/2">
           <div
-            data-hero-orb
-            className="h-72 w-72 rounded-full bg-primary/25 blur-3xl sm:h-96 sm:w-96"
+            className="animate-fade h-72 w-72 rounded-full bg-primary/25 blur-3xl sm:h-96 sm:w-96"
+            style={ORB_ENTRANCE}
           />
         </Parallax>
         <Parallax amount={0.08} className="absolute top-1/3 -left-24">
-          <div data-hero-orb className="h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
+          <div
+            className="animate-fade h-56 w-56 rounded-full bg-primary/15 blur-3xl"
+            style={ORB_ENTRANCE}
+          />
         </Parallax>
         <Parallax amount={0.1} className="absolute -right-24 bottom-0">
-          <div data-hero-orb className="h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+          <div
+            className="animate-fade h-64 w-64 rounded-full bg-primary/10 blur-3xl"
+            style={ORB_ENTRANCE}
+          />
         </Parallax>
       </div>
 
@@ -89,8 +88,8 @@ export function Hero() {
         className="container-page relative flex flex-col items-center gap-6 py-24 text-center md:py-36"
       >
         <p
-          data-hero-item
-          className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-medium text-foreground/90 sm:text-sm"
+          className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-medium text-foreground/90 sm:text-sm`}
+          style={entranceDelay(0)}
         >
           {open !== null && (
             <>
@@ -122,10 +121,11 @@ export function Hero() {
           </span>
         </p>
 
+        {/* Largest contentful paint: rises into place but is never faded from 0. */}
         <h1
           id="hero-heading"
-          data-hero-item
-          className="max-w-3xl text-[2.75rem] leading-[1.05] font-bold text-balance sm:text-6xl md:text-7xl"
+          className="max-w-3xl text-[2.75rem] leading-[1.05] font-bold text-balance motion-safe:animate-rise sm:text-6xl md:text-7xl"
+          style={entranceDelay(1)}
         >
           Midnight cravings?{" "}
           <span className="bg-linear-to-r from-primary via-amber-200 to-yellow-300 bg-clip-text text-transparent">
@@ -133,20 +133,30 @@ export function Hero() {
           </span>
         </h1>
 
-        <p data-hero-item className="max-w-xl text-balance text-muted-foreground sm:text-lg">
+        <p
+          className={`${ENTRANCE_ITEM} max-w-xl text-balance text-muted-foreground sm:text-lg`}
+          style={entranceDelay(2)}
+        >
           {BRAND.tagline} — {BRAND.description.charAt(0).toLowerCase() + BRAND.description.slice(1)}
         </p>
 
-        <div data-hero-item className="flex flex-wrap items-center justify-center gap-3">
+        <div
+          className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-3`}
+          style={entranceDelay(3)}
+        >
           <Button asChild size="lg">
             <Link href="/category/all">
-              Start an order <ArrowRight aria-hidden />
+              <ShoppingBag aria-hidden /> Start an order
             </Link>
           </Button>
           <InstallAppButton variant="outline" />
         </div>
 
-        <ul data-hero-item className="flex flex-wrap items-center justify-center gap-2" aria-label="Quick categories">
+        <ul
+          className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-2`}
+          style={entranceDelay(4)}
+          aria-label="Quick categories"
+        >
           {CRAVE_CHIPS.map((chip) => (
             <li key={chip.href}>
               <Link
@@ -160,11 +170,14 @@ export function Hero() {
           ))}
         </ul>
 
-        <p data-hero-item className="text-xs text-muted-foreground">
+        <p
+          className={`${ENTRANCE_ITEM} text-xs text-muted-foreground`}
+          style={entranceDelay(5)}
+        >
           At your door in ~{SERVICE.avgDeliveryMinutes} min. No minimum, no drama.
         </p>
 
-        <div aria-hidden data-hero-item className="pt-4">
+        <div aria-hidden className={`${ENTRANCE_ITEM} pt-4`} style={entranceDelay(6)}>
           <ChevronDown className="size-5 text-muted-foreground/70 motion-safe:animate-bounce" />
         </div>
       </div>

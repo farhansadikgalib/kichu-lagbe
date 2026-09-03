@@ -9,9 +9,10 @@ export function CtaStrip() {
     <section aria-labelledby="cta-heading" className="container-page py-16 md:py-24">
       <Reveal>
         <div className="relative overflow-hidden rounded-2xl border border-primary/20 p-px">
+          {/* Square sized to the wrapper's longer side so it covers the box at every angle. */}
           <div
             aria-hidden
-            className="absolute inset-0 animate-border-beam bg-border-beam motion-reduce:animate-none motion-reduce:hidden"
+            className="bg-beam absolute top-1/2 left-1/2 aspect-square min-h-[142%] min-w-[142%] -translate-x-1/2 -translate-y-1/2 animate-spin [animation-duration:5s] motion-reduce:hidden"
           />
           <div className="relative overflow-hidden rounded-[calc(var(--radius-2xl)-1px)] bg-card px-6 py-12 text-center md:px-12 md:py-16">
             <div

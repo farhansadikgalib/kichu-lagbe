@@ -142,7 +142,7 @@ await section("Auth", async () => {
 /* ------------------------------ Catalog tests ------------------------------ */
 
 let products = [];
-let areas = [];
+let deliveryCharge = null;
 
 await section("Catalog", async () => {
   let r = await anon.get("/api/products");
@@ -171,9 +171,12 @@ await section("Catalog", async () => {
   r = await anon.get("/api/categories");
   check("categories list", r.status === 200 && r.json.data.length >= 3);
 
-  r = await anon.get("/api/areas");
-  areas = r.json?.data ?? [];
-  check("areas list non-empty, active only", r.status === 200 && areas.length > 0 && areas.every((a) => a.isActive));
+  r = await anon.get("/api/delivery");
+  deliveryCharge = r.json?.data?.charge;
+  check(
+    "flat delivery charge published",
+    r.status === 200 && Number.isInteger(deliveryCharge) && deliveryCharge >= 0,
+  );
 });
 
 /* ------------------------------ Coupon tests ------------------------------- */
@@ -204,7 +207,6 @@ await section("Coupons", async () => {
 let orderId = null;
 
 await section("Orders", async () => {
-  const area = areas[0];
   const p0 = products[0];
   const p1 = products[1];
 
@@ -214,8 +216,7 @@ await section("Orders", async () => {
   const base = {
     customerName: "Test User",
     phone: "01711111111",
-    areaId: area.id,
-    addressDetails: "House 1, Road 2, Test Block",
+    addressDetails: "House 1, Road 2, Badda",
     items: [
       { productId: p0.id, quantity: 2 },
       { productId: p1.id, quantity: 1 },
@@ -224,9 +225,6 @@ await section("Orders", async () => {
 
   r = await customer.post("/api/orders", { ...base, items: [] });
   check("empty cart rejected (422)", r.status === 422);
-
-  r = await customer.post("/api/orders", { ...base, areaId: 99999 });
-  check("invalid area rejected (422)", r.status === 422);
 
   r = await customer.post("/api/orders", {
     ...base,
@@ -239,13 +237,13 @@ await section("Orders", async () => {
   const expectedSubtotal = p0.price * 2 + p1.price;
   const expectedDiscount =
     expectedSubtotal >= 200 ? Math.floor(expectedSubtotal * 0.1) : 0;
-  const expectedTotal = expectedSubtotal + area.charge - expectedDiscount;
+  const expectedTotal = expectedSubtotal + deliveryCharge - expectedDiscount;
   orderId = order?.id;
   check("order created (201)", r.status === 201 && Boolean(orderId));
   check(
     "server math correct",
     order?.subtotal === expectedSubtotal &&
-      order?.deliveryCharge === area.charge &&
+      order?.deliveryCharge === deliveryCharge &&
       order?.discount === expectedDiscount &&
       order?.total === expectedTotal,
     JSON.stringify({ got: order, expectedSubtotal, expectedDiscount, expectedTotal }),
@@ -402,6 +400,40 @@ await section("Admin CRUD", async () => {
     "admin user list does NOT leak passwordHash",
     (r.json?.data ?? []).every((u) => !("passwordHash" in u)),
   );
+});
+
+/* --------------------------- Delivery settings ----------------------------- */
+
+await section("Delivery settings", async () => {
+  let r = await customer.get("/api/admin/delivery");
+  check("customer blocked from delivery settings (403)", r.status === 403);
+
+  r = await admin.get("/api/admin/delivery");
+  const original = r.json?.data?.charge;
+  check("admin reads delivery charge", r.status === 200 && Number.isInteger(original));
+
+  r = await admin.patch("/api/admin/delivery", { charge: -5 });
+  check("negative charge rejected (422)", r.status === 422);
+
+  r = await admin.patch("/api/admin/delivery", { charge: original + 15 });
+  check("admin updates delivery charge", r.status === 200 && r.json.data.charge === original + 15);
+
+  r = await anon.get("/api/delivery");
+  check("public endpoint reflects the change", r.json?.data?.charge === original + 15);
+
+  r = await customer.post("/api/orders", {
+    customerName: "Test User",
+    phone: "01711111111",
+    addressDetails: "House 1, Road 2, Badda",
+    items: [{ productId: products[0].id, quantity: 1 }],
+  });
+  check(
+    "new order uses the updated charge",
+    r.status === 201 && r.json.data.deliveryCharge === original + 15,
+  );
+
+  r = await admin.patch("/api/admin/delivery", { charge: original });
+  check("charge restored", r.status === 200 && r.json.data.charge === original);
 });
 
 /* --------------------------------- Report ---------------------------------- */

@@ -379,64 +379,6 @@
       "createdAt": "2026-06-20T17:57:47.623Z"
     }
   ],
-  "deliveryAreas": [
-    {
-      "name": "Block A",
-      "charge": 50
-    },
-    {
-      "name": "Block B",
-      "charge": 50
-    },
-    {
-      "name": "Block C",
-      "charge": 50
-    },
-    {
-      "name": "Block D",
-      "charge": 50
-    },
-    {
-      "name": "Block E",
-      "charge": 50
-    },
-    {
-      "name": "Block F",
-      "charge": 55
-    },
-    {
-      "name": "Block G",
-      "charge": 65
-    },
-    {
-      "name": "Block H",
-      "charge": 65
-    },
-    {
-      "name": "Block I",
-      "charge": 65
-    },
-    {
-      "name": "Block J",
-      "charge": 65
-    },
-    {
-      "name": "Block K",
-      "charge": 70
-    },
-    {
-      "name": "Block L",
-      "charge": 70
-    },
-    {
-      "name": "Block M",
-      "charge": 80
-    },
-    {
-      "name": "Block N",
-      "charge": 80
-    }
-  ],
   "coupons": [
     {
       "code": "FORMULA",

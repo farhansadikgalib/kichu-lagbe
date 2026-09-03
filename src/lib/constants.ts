@@ -16,6 +16,9 @@ export const SERVICE = {
   avgDeliveryMinutes: 30,
 } as const;
 
+/** Flat delivery charge in BDT across the whole coverage area, until an admin sets one. */
+export const DEFAULT_DELIVERY_CHARGE = 50;
+
 /** Whether the delivery window is currently open (window spans midnight). */
 export function isServiceOpen(date = new Date()): boolean {
   const minutes = date.getHours() * 60 + date.getMinutes();

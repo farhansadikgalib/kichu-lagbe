@@ -171,10 +171,6 @@ export function OrderDetail({ id }: OrderDetailProps) {
                     <dd className="mt-0.5 font-medium">{order.phone}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Area</dt>
-                    <dd className="mt-0.5 font-medium">{order.areaName}</dd>
-                  </div>
-                  <div>
                     <dt className="text-xs text-muted-foreground">Address</dt>
                     <dd className="mt-0.5">{order.addressDetails}</dd>
                   </div>

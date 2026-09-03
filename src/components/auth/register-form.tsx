@@ -8,6 +8,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PhoneInput } from "@/components/ui/phone-input";
 import { AuthCard } from "@/components/auth/auth-card";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { GoogleButton } from "@/components/auth/google-button";
@@ -40,7 +41,9 @@ export function RegisterForm() {
   const nextParam = searchParams.get("next");
   const nextPath =
     nextParam?.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
-  const loginHref = nextParam ? `/login?next=${encodeURIComponent(nextParam)}` : "/login";
+  const loginHref = nextParam
+    ? `/login?next=${encodeURIComponent(nextParam)}`
+    : "/login";
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -68,7 +71,9 @@ export function RegisterForm() {
       router.refresh();
     } catch (err) {
       toast.error(
-        err instanceof FetchError ? err.message : "Registration failed. Please try again.",
+        err instanceof FetchError
+          ? err.message
+          : "Registration failed. Please try again.",
       );
       setSubmitting(false);
     }
@@ -81,7 +86,10 @@ export function RegisterForm() {
       footer={
         <p>
           Already have an account?{" "}
-          <Link href={loginHref} className="font-medium text-primary hover:underline">
+          <Link
+            href={loginHref}
+            className="font-medium text-primary hover:underline"
+          >
             Log in
           </Link>
         </p>
@@ -101,7 +109,11 @@ export function RegisterForm() {
             aria-describedby={errors.name ? "register-name-error" : undefined}
           />
           {errors.name && (
-            <p id="register-name-error" role="alert" className="text-xs text-destructive">
+            <p
+              id="register-name-error"
+              role="alert"
+              className="text-xs text-destructive"
+            >
               {errors.name}
             </p>
           )}
@@ -119,25 +131,30 @@ export function RegisterForm() {
             aria-describedby={errors.email ? "register-email-error" : undefined}
           />
           {errors.email && (
-            <p id="register-email-error" role="alert" className="text-xs text-destructive">
+            <p
+              id="register-email-error"
+              role="alert"
+              className="text-xs text-destructive"
+            >
               {errors.email}
             </p>
           )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="register-phone">Phone number</Label>
-          <Input
+          <PhoneInput
             id="register-phone"
-            type="tel"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="01XXXXXXXXX"
-            autoComplete="tel"
+            onValueChange={setPhone}
             aria-invalid={errors.phone ? true : undefined}
             aria-describedby={errors.phone ? "register-phone-error" : undefined}
           />
           {errors.phone && (
-            <p id="register-phone-error" role="alert" className="text-xs text-destructive">
+            <p
+              id="register-phone-error"
+              role="alert"
+              className="text-xs text-destructive"
+            >
               {errors.phone}
             </p>
           )}
@@ -150,17 +167,30 @@ export function RegisterForm() {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="new-password"
             aria-invalid={errors.password ? true : undefined}
-            aria-describedby={errors.password ? "register-password-error" : undefined}
+            aria-describedby={
+              errors.password ? "register-password-error" : undefined
+            }
           />
           {errors.password ? (
-            <p id="register-password-error" role="alert" className="text-xs text-destructive">
+            <p
+              id="register-password-error"
+              role="alert"
+              className="text-xs text-destructive"
+            >
               {errors.password}
             </p>
           ) : (
-            <p className="text-xs text-muted-foreground">At least 8 characters.</p>
+            <p className="text-xs text-muted-foreground">
+              At least 8 characters.
+            </p>
           )}
         </div>
-        <Button type="submit" size="lg" className="w-full" disabled={submitting}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={submitting}
+        >
           {submitting ? "Creating account…" : "Create account"}
         </Button>
       </form>

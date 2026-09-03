@@ -15,11 +15,14 @@ function createPool() {
   // verify-full, which fails on Aiven's self-signed CA. TLS is configured
   // explicitly below instead.
   const url = new URL(raw);
+  const sslmode = url.searchParams.get("sslmode");
   url.searchParams.delete("sslmode");
   return new Pool({
     connectionString: url.toString(),
     max: 10,
-    ssl: { rejectUnauthorized: false },
+    // Local Postgres usually has TLS off; hosted ones (Aiven) require it with
+    // a self-signed CA. `sslmode=disable` opts out, anything else opts in.
+    ssl: sslmode === "disable" ? false : { rejectUnauthorized: false },
   });
 }
 

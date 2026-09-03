@@ -2,7 +2,6 @@ import type { InferSelectModel } from "drizzle-orm";
 import type {
   categories,
   coupons,
-  deliveryAreas,
   notifications,
   orderItems,
   orders,
@@ -19,7 +18,10 @@ export type CouponType = "fixed" | "percent";
 export type User = Omit<InferSelectModel<typeof users>, "passwordHash">;
 export type Category = InferSelectModel<typeof categories>;
 export type Product = InferSelectModel<typeof products>;
-export type DeliveryArea = InferSelectModel<typeof deliveryAreas>;
+/** Flat delivery settings — one charge for the whole coverage area. */
+export interface DeliverySettings {
+  charge: number;
+}
 export type Coupon = InferSelectModel<typeof coupons>;
 export type Order = InferSelectModel<typeof orders>;
 export type OrderItem = InferSelectModel<typeof orderItems>;

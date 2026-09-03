@@ -32,6 +32,10 @@ export function Reveal({
     () => {
       const el = ref.current;
       if (!el) return;
+      // The server HTML is already on screen. Hiding content the visitor can
+      // see at hydration just to fade it back in reads as a flash, so only
+      // elements still below the reveal line are animated.
+      if (el.getBoundingClientRect().top < window.innerHeight * REVEAL.startFraction) return;
       const targets = stagger ? Array.from(el.children) : el;
 
       const mm = gsap.matchMedia();

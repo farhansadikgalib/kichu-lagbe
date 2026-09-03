@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { ArrowRight, Banknote, Clock, MapPin, PackageCheck, Search, ShoppingBag } from "lucide-react";
+import {
+  Banknote,
+  Clock,
+  MapPin,
+  PackageCheck,
+  Search,
+  ShoppingBag,
+} from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { SERVICE } from "@/lib/constants";
@@ -13,7 +20,8 @@ const STEPS = [
   {
     icon: Search,
     title: "Browse",
-    description: "Pick from snacks, cigarettes, and daily essentials — all in one place.",
+    description:
+      "Pick from snacks, cigarettes, and daily essentials — all in one place.",
   },
   {
     icon: ShoppingBag,
@@ -52,13 +60,22 @@ export function HowItWorks() {
         const glows = gsap.utils.toArray<HTMLElement>("[data-step-glow]");
         const segments = gsap.utils.toArray<HTMLElement>("[data-step-seg]");
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: el, start: "top 65%", end: "bottom 75%", scrub: true },
+          scrollTrigger: {
+            trigger: el,
+            start: "top 65%",
+            end: "bottom 75%",
+            scrub: true,
+          },
         });
         glows.forEach((glow, index) => {
           tl.to(glow, { opacity: 1, duration: 0.15 });
           const segment = segments[index];
           if (segment) {
-            tl.fromTo(segment, { scaleY: 0 }, { scaleY: 1, duration: 0.35, ease: "none" });
+            tl.fromTo(
+              segment,
+              { scaleY: 0 },
+              { scaleY: 1, duration: 0.35, ease: "none" },
+            );
           }
         });
       });
@@ -77,7 +94,7 @@ export function HowItWorks() {
           <SectionHeading
             id="how-it-works-heading"
             eyebrow="How it works"
-            title="Craving → doorstep in four taps"
+            title="Craving to doorstep in four taps"
             description="No calls, no forms, no fuss. This is the whole process."
           />
           <ul className="mt-6 flex flex-wrap gap-2" aria-label="Service facts">
@@ -93,17 +110,28 @@ export function HowItWorks() {
           </ul>
           <Button asChild size="lg" className="mt-8">
             <Link href="/category/all">
-              Start an order <ArrowRight aria-hidden />
+              <ShoppingBag aria-hidden /> Start an order
             </Link>
           </Button>
         </Reveal>
 
         <ol className="relative">
           {STEPS.map((step, index) => (
-            <Reveal as="li" key={step.title} delay={index * 0.08} className="relative pl-20">
+            <Reveal
+              as="li"
+              key={step.title}
+              delay={index * 0.08}
+              className="relative pl-20"
+            >
               {index < STEPS.length - 1 && (
-                <span aria-hidden className="absolute top-14 bottom-0 left-7 w-px bg-border/80">
-                  <span data-step-seg className="block h-full w-full origin-top bg-primary/70" />
+                <span
+                  aria-hidden
+                  className="absolute top-14 bottom-0 left-7 w-px bg-border/80"
+                >
+                  <span
+                    data-step-seg
+                    className="block h-full w-full origin-top bg-primary/70"
+                  />
                 </span>
               )}
               <span
@@ -130,7 +158,9 @@ export function HowItWorks() {
                   <span className="sr-only">Step {index + 1}: </span>
                   {step.title}
                 </h3>
-                <p className="mt-1.5 max-w-md text-muted-foreground">{step.description}</p>
+                <p className="mt-1.5 max-w-md text-muted-foreground">
+                  {step.description}
+                </p>
               </div>
             </Reveal>
           ))}

@@ -43,12 +43,11 @@ export const couponPatchSchema = couponBaseSchema.partial().refine(percentCapChe
   path: ["value"],
 });
 
-export const deliveryAreaSchema = z.object({
-  name: z.string().trim().min(1).max(80),
-  charge: z.number().int().min(0),
-  isActive: z.boolean().optional(),
+export const deliverySettingsSchema = z.object({
+  /** Flat delivery charge in BDT. */
+  charge: z.number().int().min(0).max(1000),
 });
 
 export type ProductInput = z.infer<typeof productSchema>;
 export type CouponInput = z.infer<typeof couponSchema>;
-export type DeliveryAreaInput = z.infer<typeof deliveryAreaSchema>;
+export type DeliverySettingsInput = z.infer<typeof deliverySettingsSchema>;
