@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, FetchError } from "@/lib/api/fetcher";
+import { postLoginPath } from "@/lib/auth/redirect";
 import type { SessionUser } from "@/types";
 
 function GoogleIcon() {
@@ -46,8 +47,7 @@ export function GoogleButton({ next }: { next?: string }) {
     });
     await mutate();
     toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
-    const safeNext = next?.startsWith("/") && !next.startsWith("//") ? next : "/";
-    router.push(safeNext);
+    router.push(postLoginPath(user.role, next));
     router.refresh();
   };
 

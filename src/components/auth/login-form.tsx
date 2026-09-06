@@ -14,11 +14,17 @@ import { GoogleButton } from "@/components/auth/google-button";
 import { PasswordInput } from "@/components/auth/password-input";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, FetchError } from "@/lib/api/fetcher";
+import { postLoginPath, safeNextPath } from "@/lib/auth/redirect";
 import { loginSchema } from "@/lib/validation/auth";
 import type { SessionUser } from "@/types";
 
-/** Email/password login form with post-login redirect via the `next` query param. */
-export function LoginForm() {
+/** Email/password login form. Redirects to `next` when given, otherwise to the role's home. */
+interface LoginFormProps {
+  /** Forwarded to the card: show the seeded demo accounts (localhost only). */
+  showDemoHint?: boolean;
+}
+
+export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { mutate } = useSession();
@@ -28,9 +34,7 @@ export function LoginForm() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
-  const nextParam = searchParams.get("next");
-  const nextPath =
-    nextParam?.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
+  const nextParam = safeNextPath(searchParams.get("next"));
   const registerHref = nextParam
     ? `/register?next=${encodeURIComponent(nextParam)}`
     : "/register";
@@ -60,7 +64,8 @@ export function LoginForm() {
       const user = await apiMutate<SessionUser>("/api/auth/login", { body: parsed.data });
       await mutate();
       toast.success(`Welcome back, ${user.name.split(" ")[0]}!`);
-      router.push(nextPath);
+      // Staff land in their console unless they were sent here from a specific page.
+      router.push(postLoginPath(user.role, nextParam));
       router.refresh();
     } catch (err) {
       toast.error(err instanceof FetchError ? err.message : "Login failed. Please try again.");
@@ -70,6 +75,7 @@ export function LoginForm() {
 
   return (
     <AuthCard
+      showDemoHint={showDemoHint}
       title="Welcome back"
       description="Log in to order late-night essentials."
       footer={

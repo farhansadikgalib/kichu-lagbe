@@ -4,7 +4,10 @@ const DEMO_ACCOUNTS = [
   "customer@kichulagbe.com",
 ];
 
-/** Demo credentials box shown under the auth forms. */
+/**
+ * Demo credentials box shown under the auth forms. Only rendered when the
+ * page decides the request came from localhost — see `isLocalHost`.
+ */
 export function DemoHint() {
   return (
     <div className="mt-4 rounded-lg border border-border bg-muted/40 p-4 text-xs text-muted-foreground">

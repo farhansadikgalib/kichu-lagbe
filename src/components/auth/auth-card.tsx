@@ -17,11 +17,19 @@ interface AuthCardProps {
   description: string;
   /** Link row shown under the form (e.g. switch between login/register). */
   footer: ReactNode;
+  /** Show the seeded demo accounts under the card (localhost only). */
+  showDemoHint?: boolean;
   children: ReactNode;
 }
 
 /** Centered card shell shared by the login and register pages. */
-export function AuthCard({ title, description, footer, children }: AuthCardProps) {
+export function AuthCard({
+  title,
+  description,
+  footer,
+  showDemoHint = false,
+  children,
+}: AuthCardProps) {
   return (
     <div className="container-page flex min-h-[70vh] items-center justify-center py-10 md:py-16">
       <Reveal className="w-full max-w-md">
@@ -38,7 +46,7 @@ export function AuthCard({ title, description, footer, children }: AuthCardProps
             {footer}
           </CardFooter>
         </Card>
-        <DemoHint />
+        {showDemoHint ? <DemoHint /> : null}
       </Reveal>
     </div>
   );

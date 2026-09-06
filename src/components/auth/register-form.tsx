@@ -26,7 +26,12 @@ interface FieldErrors {
 }
 
 /** Account registration form; logs the user in and redirects on success. */
-export function RegisterForm() {
+interface RegisterFormProps {
+  /** Forwarded to the card: show the seeded demo accounts (localhost only). */
+  showDemoHint?: boolean;
+}
+
+export function RegisterForm({ showDemoHint }: RegisterFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { mutate } = useSession();
@@ -81,6 +86,7 @@ export function RegisterForm() {
 
   return (
     <AuthCard
+      showDemoHint={showDemoHint}
       title="Create your account"
       description="Late-night snacks and essentials — delivered to your door."
       footer={

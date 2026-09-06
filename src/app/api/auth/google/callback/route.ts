@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { exchangeGoogleCode } from "@/lib/auth/google";
 import { loginWithOAuthProfile } from "@/lib/auth/oauth-user";
+import { postLoginPath } from "@/lib/auth/redirect";
 import { ApiError } from "@/lib/api/response";
 
 /** Google redirects here; upserts the user by email and starts a session. */
@@ -21,11 +22,10 @@ export async function GET(request: Request) {
     if (!storedState || storedState !== state) return fail("google-state");
 
     const profile = await exchangeGoogleCode(url.origin, code);
-    await loginWithOAuthProfile(profile);
+    const user = await loginWithOAuthProfile(profile);
 
-    const next = decodeURIComponent(state.split(":").slice(1).join(":") || "/");
-    const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
-    return NextResponse.redirect(new URL(safeNext, url.origin));
+    const next = decodeURIComponent(state.split(":").slice(1).join(":") || "");
+    return NextResponse.redirect(new URL(postLoginPath(user.role, next), url.origin));
   } catch (err) {
     if (err instanceof ApiError && err.status === 403) return fail("account-disabled");
     console.error("[google-oauth]", err);
