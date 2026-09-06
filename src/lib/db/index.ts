@@ -7,13 +7,15 @@ declare global {
 }
 
 /**
- * Server-side idle cutoff for pooled connections (Postgres interval syntax).
+ * Server-side cutoffs applied in every connection's startup packet.
  * Aiven's 20-connection plan loses ~11 slots to managed background workers
  * (TimescaleDB, pg_cron, failover, WAL senders), leaving the app only ~8.
- * Across Vercel serverless instances that budget is tiny, so idle connections
- * must return to it fast — the next query just reconnects.
+ * Across Vercel serverless instances that budget is tiny, so a connection left
+ * idle is reaped fast — the next query just reconnects — and no single query
+ * may pin a slot. Values are milliseconds (0 disables).
  */
-export const IDLE_SESSION_TIMEOUT = "20s";
+export const IDLE_SESSION_TIMEOUT_MS = 20_000;
+export const STATEMENT_TIMEOUT_MS = 15_000;
 
 function createPool() {
   const raw = process.env.DATABASE_URL;
@@ -42,27 +44,20 @@ function createPool() {
     // TCP keep-alive stops intermediaries from dropping the remote Aiven link
     // between bursts, which would cost a reconnect handshake per query.
     keepAlive: true,
+    // Applied in the connection startup packet, so every connection has them
+    // from its first query — unlike a post-connect `SET`, which races with the
+    // pool's first checkout under concurrency and silently fails to apply
+    // (that leak is what exhausted Aiven's connection budget in production):
+    //   idle_session_timeout — the server reaps a connection left idle this
+    //     long, so frozen serverless instances stop pinning the shared budget.
+    //   statement_timeout — no single query can pin a scarce slot; 15s is far
+    //     above any real query here.
+    // The LISTEN client raises both back off (see lib/events/order-events.ts),
+    // being idle and long-lived by design.
+    options: `-c idle_session_timeout=${IDLE_SESSION_TIMEOUT_MS} -c statement_timeout=${STATEMENT_TIMEOUT_MS}`,
     // Local Postgres usually has TLS off; hosted ones (Aiven) require it with
     // a self-signed CA. `sslmode=disable` opts out, anything else opts in.
     ssl: sslmode === "disable" ? false : { rejectUnauthorized: false },
-  });
-  // A frozen serverless instance never runs its idle timer, so its pooled
-  // connections would stay open server-side until the instance is reaped —
-  // enough warm instances and the plan's limit is hit. Have the server drop
-  // any connection idle for a minute instead; the next query reconnects.
-  // (Long-lived LISTEN clients opt out — see lib/events/order-events.ts.)
-  pool.on("connect", (client) => {
-    // idle_session_timeout: reap idle connections back to the shared budget.
-    // statement_timeout: never let one stuck query pin a scarce slot; 15s is
-    // far above any real query here. The LISTEN client raises both back off
-    // (see lib/events/order-events.ts) since it is idle and long-lived by design.
-    client
-      .query(
-        `set idle_session_timeout = '${IDLE_SESSION_TIMEOUT}'; set statement_timeout = '15s'`,
-      )
-      .catch((err: Error) => {
-        console.warn("[db] could not set session timeouts:", err.message);
-      });
   });
   // Without a handler, an error on an idle client is an unhandled 'error'
   // event and kills the whole Node process. The server reaping an idle
