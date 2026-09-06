@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { usePush } from "@/hooks/use-push";
 import { useSession } from "@/hooks/use-session";
+import { getInstallInstructions } from "@/lib/pwa";
 import { cn } from "@/lib/utils";
 
 interface PushToggleProps {
@@ -17,7 +18,9 @@ const COPY = {
   subscribed: { label: "Notifications on", hint: "Order updates reach this device even when the app is closed." },
   unsubscribed: { label: "Turn on notifications", hint: "Get order updates on this device even when the app is closed." },
   denied: { label: "Notifications blocked", hint: "Allow notifications for this site in your browser settings, then try again." },
-  "needs-install": { label: "Install to get notifications", hint: "On iPhone, add KichuLagbe to your Home Screen (Share → Add to Home Screen) and turn notifications on from there." },
+  // Hint is replaced at render with steps for the browser in use — every iOS
+  // browser buries "Add to Home Screen" behind a different button.
+  "needs-install": { label: "Install to get notifications", hint: "" },
 } as const;
 
 /**
@@ -31,6 +34,10 @@ export function PushToggle({ variant = "row", className }: PushToggleProps) {
 
   if (!user || status === null || status === "unsupported") return null;
   const copy = COPY[status];
+  const hint =
+    status === "needs-install"
+      ? `${getInstallInstructions().description} Then turn notifications on from the installed app.`
+      : copy.hint;
   const on = status === "subscribed";
   const canToggle = status === "subscribed" || status === "unsubscribed";
 
@@ -42,7 +49,7 @@ export function PushToggle({ variant = "row", className }: PushToggleProps) {
         size="sm"
         disabled={busy || !canToggle}
         aria-pressed={on}
-        title={copy.hint}
+        title={hint}
         onClick={() => void toggle()}
         className={className}
       >
@@ -73,7 +80,7 @@ export function PushToggle({ variant = "row", className }: PushToggleProps) {
           )}
           {copy.label}
         </p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{copy.hint}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>
       </div>
       {canToggle && (
         <Switch

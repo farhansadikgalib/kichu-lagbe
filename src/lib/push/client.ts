@@ -6,23 +6,19 @@
  */
 import { apiMutate } from "@/lib/api/fetcher";
 import { requestNotificationPermission } from "@/lib/browser-notifications";
-import { isStandaloneDisplay } from "@/lib/pwa";
+import { isIosDevice, isStandaloneDisplay } from "@/lib/pwa";
 import { PUSH_SUBSCRIPTIONS_PATH } from "./payload";
 
 export type PushStatus =
   /** No Push API here (or no VAPID key configured). */
   | "unsupported"
-  /** iOS Safari: push only works once the app is on the home screen. */
+  /** iOS: push only works once the app is on the home screen. */
   | "needs-install"
   | "denied"
   | "subscribed"
   | "unsubscribed";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
-
-function isIos() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
 
 export function pushSupported() {
   return (
@@ -49,7 +45,7 @@ async function registration() {
 
 export async function getPushStatus(): Promise<PushStatus> {
   if (!pushSupported()) {
-    return typeof navigator !== "undefined" && isIos() && !isStandaloneDisplay() ? "needs-install" : "unsupported";
+    return isIosDevice() && !isStandaloneDisplay() ? "needs-install" : "unsupported";
   }
   if (Notification.permission === "denied") return "denied";
   const reg = await registration();

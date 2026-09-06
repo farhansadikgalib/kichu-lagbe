@@ -4,7 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import type { VariantProps } from "class-variance-authority";
-import { isStandaloneDisplay } from "@/lib/pwa";
+import { getInstallInstructions, isStandaloneDisplay } from "@/lib/pwa";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -73,12 +73,10 @@ export function InstallAppButton({
       if (outcome === "accepted") setDeferredPrompt(null);
       return;
     }
-    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    toast.info(
-      isIOS
-        ? "Tap the Share button in Safari, then “Add to Home Screen”."
-        : "Open your browser menu and choose “Install app” / “Add to Home screen”.",
-    );
+    // No native prompt here (every iOS browser, plus desktop Safari/Firefox):
+    // show the steps for the browser the user is actually in.
+    const { title, description } = getInstallInstructions();
+    toast.info(title, { description, duration: 8000 });
   };
 
   return (
