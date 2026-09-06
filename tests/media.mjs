@@ -13,7 +13,8 @@ const BASE = process.argv[2] ?? "http://localhost:3000";
 let passed = 0;
 let failed = 0;
 const check = (name, ok, detail = "") => {
-  ok ? passed++ : failed++;
+  if (ok) passed++;
+  else failed++;
   console.log(`  ${ok ? "✓" : "✗"} ${name}${!ok && detail ? ` — ${detail}` : ""}`);
 };
 
