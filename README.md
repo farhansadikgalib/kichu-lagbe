@@ -26,7 +26,9 @@ KichuLagbe follows the module structure of the reference product ([https://deliv
 
 ### 1. Storefront / Catalog Module
 - Homepage with hero, service highlights (avg. ~30 min delivery, 8:00 PM – 3:00 AM service window, Badda coverage)
+- Homepage sections are data-driven: the layout lives in `app_settings.homeLayout` (see `src/lib/home/schema.ts`) and falls back to the shipped defaults
 - Product browsing by category: **Food**, **Cigarettes**, **Daily Products** (milk, eggs, bread, etc.)
+- Products may carry priced options (`product_variants`); the card shows a "from" price and an option picker
 - Product search and category navigation
 
 ### 2. Cart Module
@@ -53,7 +55,9 @@ KichuLagbe follows the module structure of the reference product ([https://deliv
 
 ### 6. Admin Module
 - Admin access/login
-- Management of products, orders, coupons, and users
+- Management of products (with image upload and priced options), orders, coupons, and users
+- Home page builder (`/admin/home`): reorder, show/hide, add and edit sections with a live preview of the real storefront (`/preview/home` in an iframe, fed by `postMessage`); publishing revalidates `/`
+- Image uploads are stored in Postgres (`media` table) and served from `/api/media/[id]` with immutable caching — no extra storage service required
 
 ### 7. Notifications & Engagement Module
 - Push notifications (order status updates)
