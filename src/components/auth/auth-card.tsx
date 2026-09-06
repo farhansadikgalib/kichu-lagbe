@@ -16,7 +16,7 @@ interface AuthCardProps {
   title: string;
   description: string;
   /** Link row shown under the form (e.g. switch between login/register). */
-  footer: ReactNode;
+  footer?: ReactNode;
   /** Show the seeded demo accounts under the card (localhost only). */
   showDemoHint?: boolean;
   children: ReactNode;
@@ -42,9 +42,11 @@ export function AuthCard({
             <CardDescription>{description}</CardDescription>
           </CardHeader>
           <CardContent>{children}</CardContent>
-          <CardFooter className="justify-center text-sm text-muted-foreground">
-            {footer}
-          </CardFooter>
+          {footer ? (
+            <CardFooter className="justify-center text-sm text-muted-foreground">
+              {footer}
+            </CardFooter>
+          ) : null}
         </Card>
         {showDemoHint ? <DemoHint /> : null}
       </Reveal>

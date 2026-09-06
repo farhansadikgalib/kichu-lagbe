@@ -48,9 +48,6 @@ export function LoginForm({ mode = "customer", showDemoHint }: LoginFormProps = 
   const [turnstileRun, setTurnstileRun] = useState(0);
 
   const nextParam = safeNextPath(searchParams.get("next"));
-  const registerHref = nextParam
-    ? `/register?next=${encodeURIComponent(nextParam)}`
-    : "/register";
 
   const oauthError = searchParams.get("error");
   const oauthErrorMessage =
@@ -115,17 +112,7 @@ export function LoginForm({ mode = "customer", showDemoHint }: LoginFormProps = 
               Customer login
             </Link>
           </p>
-        ) : (
-          <p>
-            Don&apos;t have an account?{" "}
-            <Link
-              href={registerHref}
-              className="font-medium text-primary hover:underline"
-            >
-              Create one
-            </Link>
-          </p>
-        )
+        ) : undefined
       }
     >
       {oauthErrorMessage && (
