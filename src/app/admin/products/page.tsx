@@ -255,14 +255,14 @@ export default function AdminProductsPage() {
       <TableShell>
         <TableHeader>
           <TableRow>
-            <TableHead>
+            <TableHead className="hidden sm:table-cell">
               <span className="sr-only">Image</span>
             </TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Price</TableHead>
+            <TableHead className="hidden md:table-cell">Category</TableHead>
+            <TableHead className="hidden md:table-cell">Price</TableHead>
             <TableHead>Available</TableHead>
-            <TableHead>Updated</TableHead>
+            <TableHead className="hidden lg:table-cell">Updated</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -283,7 +283,7 @@ export default function AdminProductsPage() {
           />
           {products.map((product) => (
             <TableRow key={product.id}>
-              <TableCell>
+              <TableCell className="hidden sm:table-cell">
                 {product.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -307,11 +307,18 @@ export default function AdminProductsPage() {
                 )}
               >
                 {product.name}
+                <span className="mt-0.5 block text-xs font-normal text-muted-foreground md:hidden">
+                  {product.variants.length > 0
+                    ? `from ${formatBDT(startingPrice(product))}`
+                    : formatBDT(product.price)}
+                  {" · "}
+                  {product.category.name}
+                </span>
               </TableCell>
-              <TableCell className="text-muted-foreground">
+              <TableCell className="hidden text-muted-foreground md:table-cell">
                 {product.category.name}
               </TableCell>
-              <TableCell className="tabular-nums">
+              <TableCell className="hidden tabular-nums md:table-cell">
                 {product.variants.length > 0 ? (
                   <>
                     <span className="text-muted-foreground">from </span>
@@ -334,7 +341,7 @@ export default function AdminProductsPage() {
                   aria-label={`Toggle availability of ${product.name}`}
                 />
               </TableCell>
-              <TableCell className="whitespace-nowrap text-muted-foreground">
+              <TableCell className="hidden whitespace-nowrap text-muted-foreground lg:table-cell">
                 {formatDate(product.updatedAt)}
               </TableCell>
               <TableCell className="text-right">

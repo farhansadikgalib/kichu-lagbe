@@ -158,7 +158,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <div className="ml-auto flex items-center gap-1">
             <LiveOrderAlerts />
             <NotificationsMenu />
-            <Button asChild variant="outline" size="sm" className="ml-1">
+            <Button asChild variant="outline" size="sm" className="ml-1 max-sm:hidden">
               <Link href="/">
                 <Store data-icon="inline-start" aria-hidden />
                 Back to store

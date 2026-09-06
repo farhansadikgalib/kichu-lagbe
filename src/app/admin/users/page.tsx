@@ -133,10 +133,10 @@ export default function AdminUsersPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Phone</TableHead>
+            <TableHead className="hidden md:table-cell">Email</TableHead>
+            <TableHead className="hidden lg:table-cell">Phone</TableHead>
             <TableHead>Role</TableHead>
-            <TableHead>Joined</TableHead>
+            <TableHead className="hidden lg:table-cell">Joined</TableHead>
             <TableHead>Active</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
@@ -170,9 +170,14 @@ export default function AdminUsersPage() {
                       You
                     </Badge>
                   )}
+                  <span className="mt-0.5 block max-w-40 truncate text-xs font-normal text-muted-foreground md:hidden">
+                    {user.email}
+                  </span>
                 </TableCell>
-                <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground md:table-cell">
+                  {user.email}
+                </TableCell>
+                <TableCell className="hidden text-muted-foreground lg:table-cell">
                   {user.phone ?? "—"}
                 </TableCell>
                 <TableCell>
@@ -180,7 +185,7 @@ export default function AdminUsersPage() {
                     {ROLE_LABELS[user.role]}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground lg:table-cell">
                   {formatDate(user.createdAt)}
                 </TableCell>
                 <TableCell>

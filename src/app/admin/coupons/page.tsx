@@ -164,10 +164,10 @@ export default function AdminCouponsPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Code</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead className="hidden md:table-cell">Type</TableHead>
             <TableHead>Value</TableHead>
-            <TableHead>Min order</TableHead>
-            <TableHead>Expires</TableHead>
+            <TableHead className="hidden lg:table-cell">Min order</TableHead>
+            <TableHead className="hidden sm:table-cell">Expires</TableHead>
             <TableHead>Active</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
@@ -187,18 +187,27 @@ export default function AdminCouponsPage() {
               coupon.expiresAt !== null && new Date(coupon.expiresAt) < new Date();
             return (
               <TableRow key={coupon.id}>
-                <TableCell className="font-mono font-medium">{coupon.code}</TableCell>
-                <TableCell>
+                <TableCell className="font-mono font-medium">
+                  {coupon.code}
+                  <span
+                    className={`mt-0.5 block text-xs font-normal sm:hidden ${expired ? "text-destructive" : "text-muted-foreground"}`}
+                  >
+                    {coupon.expiresAt
+                      ? `${expired ? "Expired " : ""}${formatDate(coupon.expiresAt)}`
+                      : "Never expires"}
+                  </span>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
                   <Badge variant="outline">
                     {coupon.type === "percent" ? "Percent" : "Fixed"}
                   </Badge>
                 </TableCell>
                 <TableCell>{formatCouponValue(coupon)}</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground lg:table-cell">
                   {coupon.minOrder > 0 ? formatBDT(coupon.minOrder) : "—"}
                 </TableCell>
                 <TableCell
-                  className={expired ? "text-destructive" : "text-muted-foreground"}
+                  className={`hidden sm:table-cell ${expired ? "text-destructive" : "text-muted-foreground"}`}
                 >
                   {coupon.expiresAt
                     ? `${expired ? "Expired " : ""}${formatDate(coupon.expiresAt)}`

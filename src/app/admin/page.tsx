@@ -337,8 +337,8 @@ export default function AdminDashboardPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Order</TableHead>
-              <TableHead>Placed</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead className="hidden sm:table-cell">Placed</TableHead>
+              <TableHead className="hidden md:table-cell">Customer</TableHead>
               <TableHead>Total</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
@@ -355,11 +355,14 @@ export default function AdminDashboardPage() {
               <TableRow key={order.id}>
                 <TableCell className="font-medium">
                   {formatOrderNumber(order.orderNumber)}
+                  <span className="mt-0.5 block max-w-32 truncate text-xs font-normal text-muted-foreground md:hidden">
+                    {order.user.name}
+                  </span>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden text-muted-foreground sm:table-cell">
                   {formatDate(order.createdAt)}
                 </TableCell>
-                <TableCell>{order.user.name}</TableCell>
+                <TableCell className="hidden md:table-cell">{order.user.name}</TableCell>
                 <TableCell>{formatBDT(order.total)}</TableCell>
                 <TableCell>
                   <OrderStatusBadge status={order.status} />
