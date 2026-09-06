@@ -8,6 +8,7 @@ Re-created every time you run `npm run db:seed`.
 > never committed.
 
 **Live app:** https://kichulagbe.vercel.app
+**API reference (Swagger UI):** https://kichulagbe.vercel.app/api-docs · spec: https://kichulagbe.vercel.app/api/openapi.json
 
 ## Demo login accounts
 
