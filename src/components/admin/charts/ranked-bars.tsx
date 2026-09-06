@@ -27,8 +27,9 @@ export function RankedBars({ rows, formatValue, emptyMessage }: RankedBarsProps)
 
   return (
     <ol className="space-y-3">
+      {/* Labels can collide (two customers with the same name); rank disambiguates. */}
       {rows.map((row, i) => (
-        <li key={row.label}>
+        <li key={`${i}-${row.label}`}>
           <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
             <span className="min-w-0 truncate">
               {row.label}
