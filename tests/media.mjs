@@ -20,15 +20,23 @@ const check = (name, ok, detail = "") => {
 const png = (w, h, bg) => sharp({ create: { width: w, height: h, channels: 3, background: bg } }).png().toBuffer();
 const jpg = (w, h, bg) => sharp({ create: { width: w, height: h, channels: 3, background: bg } }).jpeg().toBuffer();
 
-let cookie = "";
-{
+// Production enforces a Turnstile bot check on login, so pass an existing
+// admin session instead:  MEDIA_COOKIE='dl_session=…' node tests/media.mjs <url>
+let cookie = process.env.MEDIA_COOKIE ?? "";
+if (cookie) {
+  check("using MEDIA_COOKIE session", true);
+} else {
   const res = await fetch(`${BASE}/api/auth/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ email: "admin@kichulagbe.com", password: "Password123!" }),
   });
   cookie = (res.headers.getSetCookie?.() ?? []).map((c) => c.split(";")[0]).join("; ");
-  check("admin login", res.status === 200);
+  check("admin login", res.status === 200, `status=${res.status} ${await res.text().catch(() => "")}`);
+  if (res.status !== 200) {
+    console.log("\nCannot continue without an admin session.");
+    process.exit(1);
+  }
 }
 
 async function upload(bytes, type, name, fit, headers = { cookie }) {
