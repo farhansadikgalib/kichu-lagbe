@@ -6,7 +6,16 @@ import { DEFAULT_DELIVERY_CHARGE } from "@/lib/constants";
 export const SETTING_KEYS = {
   deliveryMode: "deliveryMode",
   deliveryCharge: "deliveryCharge",
+  homeLayout: "homeLayout",
 } as const;
+
+/** Upsert one setting value. */
+export async function setSetting(key: string, value: string) {
+  await db
+    .insert(appSettings)
+    .values({ key, value })
+    .onConflictDoUpdate({ target: appSettings.key, set: { value, updatedAt: new Date() } });
+}
 
 /**
  * Flat delivery charge in BDT — one rate for the whole coverage area. Falls
@@ -22,12 +31,6 @@ export async function getDeliveryCharge(): Promise<number> {
 }
 
 export async function setDeliveryCharge(charge: number): Promise<number> {
-  await db
-    .insert(appSettings)
-    .values({ key: SETTING_KEYS.deliveryCharge, value: String(charge) })
-    .onConflictDoUpdate({
-      target: appSettings.key,
-      set: { value: String(charge), updatedAt: new Date() },
-    });
+  await setSetting(SETTING_KEYS.deliveryCharge, String(charge));
   return charge;
 }

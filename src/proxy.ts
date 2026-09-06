@@ -3,6 +3,7 @@ import { jwtVerify } from "jose";
 
 const PROTECTED: Array<{ prefix: string; roles?: string[] }> = [
   { prefix: "/admin", roles: ["admin"] },
+  { prefix: "/preview", roles: ["admin"] },
   { prefix: "/rider", roles: ["rider", "admin"] },
   { prefix: "/checkout" },
   { prefix: "/orders" },
@@ -35,6 +36,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/preview/:path*",
     "/rider/:path*",
     "/checkout/:path*",
     "/orders/:path*",
