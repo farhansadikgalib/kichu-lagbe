@@ -11,13 +11,19 @@ Re-created every time you run `npm run db:seed`.
 
 ## Demo login accounts
 
+Staff (admin and rider) sign in at the back console: **`/console`**
+(local: http://localhost:3000/console · live: https://kichulagbe.vercel.app/console).
+After signing in, each is taken to their own console automatically.
+
+Customers sign in on the storefront at **`/login`**.
+
 All three share the same password: **`Password123!`**
 
-| Role     | Email                    | Password       | Can access            |
-| -------- | ------------------------ | -------------- | --------------------- |
-| Admin    | `admin@kichulagbe.com`   | `Password123!` | `/admin`, `/rider`, storefront |
-| Rider    | `rider@kichulagbe.com`   | `Password123!` | `/rider`, storefront  |
-| Customer | `customer@kichulagbe.com`| `Password123!` | storefront only       |
+| Role     | Email                    | Password       | Signs in at |
+| -------- | ------------------------ | -------------- | ----------- |
+| Admin    | `admin@kichulagbe.com`   | `Password123!` | `/console`  |
+| Rider    | `rider@kichulagbe.com`   | `Password123!` | `/console`  |
+| Customer | `customer@kichulagbe.com`| `Password123!` | `/login`    |
 
 ## Demo coupons
 

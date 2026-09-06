@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema";
+import { revalidateCatalog } from "@/lib/db/queries/catalog-cache";
 import { countProducts, getProductById, listProducts } from "@/lib/db/queries/products";
 import { syncVariants } from "@/lib/db/queries/product-variants";
 import { requireUser } from "@/lib/auth/guards";
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
       if (input.variants?.length) await syncVariants(tx, created.id, input.variants);
       return created.id;
     });
+    revalidateCatalog();
     return ok(await getProductById(id), { status: 201 });
   } catch (err) {
     return handleApiError(err);

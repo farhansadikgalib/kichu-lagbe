@@ -17,15 +17,28 @@ export function useProducts(
   const { data, error, isLoading, mutate } = useSWR<ProductWithCategory[]>(
     `/api/products${qs ? `?${qs}` : ""}`,
     swrFetcher,
-    { fallbackData },
+    // Previous rows stay on screen while a new lane/search loads, so
+    // switching tabs or typing never flashes a skeleton.
+    { fallbackData, keepPreviousData: true },
   );
-  // SWR does not count fallback rows as loaded, so without this the grid would
-  // show a skeleton over server-rendered products during the first revalidation.
-  return { data, error, isLoading: isLoading && data === undefined, mutate };
+  return {
+    data,
+    error,
+    // SWR does not count fallback/kept rows as loaded, so without this the
+    // grid would show a skeleton over rows that are already on screen.
+    isLoading: isLoading && data === undefined,
+    /** A newer query is in flight while earlier rows stay visible. */
+    isRefreshing: isLoading && data !== undefined,
+    mutate,
+  };
 }
 
 export function useCategories() {
-  return useSWR<Category[]>("/api/categories", swrFetcher);
+  // Categories change rarely; don't refetch them on every window focus.
+  return useSWR<Category[]>("/api/categories", swrFetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60_000,
+  });
 }
 
 /** Flat delivery charge applied to every order. */

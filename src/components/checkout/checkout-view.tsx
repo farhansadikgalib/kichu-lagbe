@@ -101,10 +101,20 @@ export function CheckoutView() {
   const name = nameInput ?? user?.name ?? "";
   const phone =
     phoneInput ?? (profile?.phone ? normalizePhone(profile.phone) : "");
-  const [address, setAddress] = useState("");
   // Ask for the device location as soon as checkout opens; it's optional, so
   // a "no" just leaves the address field to do the job.
   const location = useGeolocation({ auto: true });
+  // The pinned point reverse-geocodes to a street address that pre-fills
+  // the field; anything the customer types wins.
+  const { data: geocoded } = useSWR<{ address: string | null }>(
+    location.point
+      ? `/api/geocode/reverse?lat=${location.point.lat}&lng=${location.point.lng}`
+      : null,
+    swrFetcher,
+    { revalidateOnFocus: false },
+  );
+  const [addressInput, setAddressInput] = useState<string | null>(null);
+  const address = addressInput ?? geocoded?.address ?? "";
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [showCoupon, setShowCoupon] = useState(false);
@@ -260,7 +270,7 @@ export function CheckoutView() {
               <Input
                 id="checkout-address"
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                onChange={(e) => setAddressInput(e.target.value)}
                 placeholder="House, road, block, flat"
                 autoComplete="street-address"
                 aria-invalid={errors.addressDetails ? true : undefined}
@@ -271,6 +281,12 @@ export function CheckoutView() {
               <FieldError id="checkout-address-error">
                 {errors.addressDetails}
               </FieldError>
+              {addressInput === null && !!geocoded?.address && (
+                <p className="text-xs text-muted-foreground">
+                  Filled from your pinned location — add house or flat details
+                  if anything is missing.
+                </p>
+              )}
             </div>
             <LocationField
               status={location.status}

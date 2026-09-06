@@ -193,10 +193,13 @@ export function useGeolocation({ auto = false }: GeolocationOptions = {}) {
 
   // Try once on mount. The Permissions API can't block this because its
   // snapshot resolves after this effect, so the attempt reports for itself.
-  const autoRequested = useRef(false);
+  // No once-ever guard: StrictMode's rehearsal unmount aborts the first
+  // attempt, and the effect re-run must be free to start a fresh one.
   useEffect(() => {
-    if (!auto || autoRequested.current) return;
-    autoRequested.current = true;
+    if (!auto) return;
+    // `run` sets "locating" synchronously before its async position lookup —
+    // a fetch-on-mount kickoff, not derived state; safe to run in an effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void run(true);
   }, [auto, run]);
 

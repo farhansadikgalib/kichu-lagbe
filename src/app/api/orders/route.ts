@@ -1,7 +1,7 @@
 import { after } from "next/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { coupons, orderItems, orders, products, productVariants } from "@/lib/db/schema";
+import { coupons, orderItems, orders, products, productVariants, users } from "@/lib/db/schema";
 import { getDeliveryCharge } from "@/lib/db/queries/settings";
 import { requireUser } from "@/lib/auth/guards";
 import { couponDiscount } from "@/lib/pricing";
@@ -124,6 +124,13 @@ export async function POST(request: Request) {
       await tx
         .insert(orderItems)
         .values(itemRows.map((row) => ({ ...row, orderId: created.id })));
+
+      // The account always carries the phone the customer last ordered with,
+      // so checkout and the profile stay pre-filled with a current number.
+      await tx
+        .update(users)
+        .set({ phone: input.phone })
+        .where(eq(users.id, session.sub));
 
       return created;
     });

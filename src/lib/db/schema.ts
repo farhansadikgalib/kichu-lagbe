@@ -84,7 +84,10 @@ export const products = pgTable(
     /** Bumped on every admin edit (details, availability, options) — the admin list sorts by it. */
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("products_slug_idx").on(t.slug)],
+  (t) => [
+    uniqueIndex("products_slug_idx").on(t.slug),
+    index("products_category_idx").on(t.categoryId),
+  ],
 );
 
 /**
@@ -167,7 +170,10 @@ export const orders = pgTable("orders", {
   paymentMethod: text("payment_method").notNull().default("cod"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   deliveredAt: timestamp("delivered_at", { withTimezone: true }),
-});
+}, (t) => [
+  index("orders_user_idx").on(t.userId),
+  index("orders_rider_idx").on(t.riderId),
+]);
 
 export const orderItems = pgTable("order_items", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -185,7 +191,7 @@ export const orderItems = pgTable("order_items", {
   unitPrice: integer("unit_price").notNull(),
   quantity: integer("quantity").notNull(),
   lineTotal: integer("line_total").notNull(),
-});
+}, (t) => [index("order_items_order_idx").on(t.orderId)]);
 
 /* ------------------------------ Notifications ------------------------------ */
 
@@ -199,7 +205,7 @@ export const notifications = pgTable("notifications", {
   href: text("href"),
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => [index("notifications_user_idx").on(t.userId)]);
 
 /* ----------------------------- Push subscriptions -------------------------- */
 

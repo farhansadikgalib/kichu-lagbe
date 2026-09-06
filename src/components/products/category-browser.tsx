@@ -52,10 +52,12 @@ const FACTS = [
 
 interface CategoryBrowserProps {
   slug: string;
+  /** Server-rendered rows for this lane: shown at once, revalidated in the background. */
+  initialProducts?: ProductWithCategory[];
 }
 
 /** Catalog page: lane header, sticky search / lanes / sort toolbar, and the grid. */
-export function CategoryBrowser({ slug }: CategoryBrowserProps) {
+export function CategoryBrowser({ slug, initialProducts }: CategoryBrowserProps) {
   const tab = findCatalogTab(slug) ?? findCatalogTab("all")!;
 
   const [query, setQuery] = useState("");
@@ -70,12 +72,18 @@ export function CategoryBrowser({ slug }: CategoryBrowserProps) {
     return () => window.clearTimeout(timer);
   }, [query]);
 
-  const { data, error, isLoading, mutate } = useProducts(slug, search);
+  const { data, error, isLoading, isRefreshing, mutate } = useProducts(
+    slug,
+    search,
+    // The prefetch only matches the unfiltered lane query.
+    search ? undefined : initialProducts,
+  );
   const products = useMemo(
     () => (data ? sortProducts(data, sort) : data),
     [data, sort],
   );
   const count = products?.length ?? 0;
+  const busy = isLoading || isRefreshing;
 
   return (
     <>
@@ -188,16 +196,16 @@ export function CategoryBrowser({ slug }: CategoryBrowserProps) {
         <p
           className={cn(
             "text-sm text-muted-foreground tabular-nums transition-opacity",
-            isLoading && "opacity-60",
+            busy && "opacity-60",
           )}
           aria-live="polite"
         >
-          {isLoading
+          {busy
             ? "Finding what's in stock…"
             : search
               ? `${count} ${count === 1 ? "result" : "results"} for “${search}”`
               : `${count} ${count === 1 ? "item" : "items"} available tonight`}
-          {search && !isLoading && (
+          {search && !busy && (
             <Button
               type="button"
               variant="link"
@@ -210,7 +218,7 @@ export function CategoryBrowser({ slug }: CategoryBrowserProps) {
           )}
         </p>
 
-        <div className="mt-4">
+        <div className={cn("mt-4 transition-opacity", isRefreshing && "opacity-60")}>
           <ProductGrid
             products={products}
             isLoading={isLoading}

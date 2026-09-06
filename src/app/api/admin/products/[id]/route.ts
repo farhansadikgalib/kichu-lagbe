@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { products } from "@/lib/db/schema";
+import { revalidateCatalog } from "@/lib/db/queries/catalog-cache";
 import { getProductById } from "@/lib/db/queries/products";
 import { syncVariants } from "@/lib/db/queries/product-variants";
 import { requireUser } from "@/lib/auth/guards";
@@ -36,6 +37,7 @@ export async function PATCH(request: Request, { params }: Params) {
       if (!found) throw new ApiError("Product not found.", 404);
       if (input.variants !== undefined) await syncVariants(tx, id, input.variants);
     });
+    revalidateCatalog();
     return ok(await getProductById(id));
   } catch (err) {
     return handleApiError(err);
@@ -53,6 +55,7 @@ export async function DELETE(_request: Request, { params }: Params) {
       .where(eq(products.id, id))
       .returning({ id: products.id });
     if (!deleted) throw new ApiError("Product not found.", 404);
+    revalidateCatalog();
     return ok({ deleted: true });
   } catch (err) {
     return handleApiError(err);

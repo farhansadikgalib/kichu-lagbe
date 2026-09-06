@@ -50,6 +50,13 @@
       "when": 1788696386075,
       "tag": "0006_push_subscriptions_and_order_location",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788707499754,
+      "tag": "0007_clear_thunderbolt",
+      "breakpoints": true
     }
   ]
 }
