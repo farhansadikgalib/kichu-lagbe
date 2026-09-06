@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader, TableShell, TableStateRows } from "@/components/admin/data-table";
+import {
+  PageHeader,
+  TablePagination,
+  TableSearchInput,
+  TableShell,
+  TableStateRows,
+} from "@/components/admin/data-table";
 import { errorMessage, useAdminUsers } from "@/components/admin/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,6 +36,8 @@ import { cn } from "@/lib/utils";
 import type { User, UserRole } from "@/types";
 
 const COLUMN_COUNT = 7;
+const SEARCH_DEBOUNCE_MS = 300;
+const PAGE_SIZE = 20;
 
 const USER_ROLES: UserRole[] = ["customer", "rider", "admin"];
 
@@ -49,10 +57,32 @@ type RoleFilter = "all" | UserRole;
 
 export default function AdminUsersPage() {
   const [filter, setFilter] = useState<RoleFilter>("all");
+  const [query, setQuery] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const role = filter === "all" ? undefined : filter;
-  const { data: users, error, isLoading, mutate } = useAdminUsers(role);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setSearch(query.trim());
+      setPage(1);
+    }, SEARCH_DEBOUNCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  const { data, error, isLoading, mutate } = useAdminUsers(role, {
+    search,
+    page,
+    pageSize: PAGE_SIZE,
+  });
+  const users = data?.items ?? [];
   const { user: sessionUser } = useSession();
   const [pendingId, setPendingId] = useState<string | null>(null);
+
+  function changeFilter(value: RoleFilter) {
+    setFilter(value);
+    setPage(1);
+  }
 
   async function updateUser(
     user: User,
@@ -78,18 +108,26 @@ export default function AdminUsersPage() {
         description="Manage customer, rider, and admin accounts."
       />
 
-      <Tabs value={filter} onValueChange={(value) => setFilter(value as RoleFilter)}>
-        <div className="overflow-x-auto">
-          <TabsList aria-label="Filter users by role">
-            <TabsTrigger value="all">All</TabsTrigger>
-            {USER_ROLES.map((r) => (
-              <TabsTrigger key={r} value={r}>
-                {ROLE_LABELS[r]}s
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-      </Tabs>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <Tabs value={filter} onValueChange={(value) => changeFilter(value as RoleFilter)}>
+          <div className="overflow-x-auto">
+            <TabsList aria-label="Filter users by role">
+              <TabsTrigger value="all">All</TabsTrigger>
+              {USER_ROLES.map((r) => (
+                <TabsTrigger key={r} value={r}>
+                  {ROLE_LABELS[r]}s
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+        </Tabs>
+        <TableSearchInput
+          value={query}
+          onValueChange={setQuery}
+          placeholder="Search by name, email, or phone"
+          className="lg:max-w-sm"
+        />
+      </div>
 
       <TableShell>
         <TableHeader>
@@ -110,13 +148,17 @@ export default function AdminUsersPage() {
             colSpan={COLUMN_COUNT}
             isLoading={isLoading}
             error={error}
-            isEmpty={!users || users.length === 0}
+            isEmpty={users.length === 0}
             emptyMessage={
-              filter === "all" ? "No users yet." : `No ${filter}s found.`
+              search
+                ? `No users match "${search}".`
+                : filter === "all"
+                  ? "No users yet."
+                  : `No ${filter}s found.`
             }
             skeletonRows={8}
           />
-          {users?.map((user) => {
+          {users.map((user) => {
             const isSelf = sessionUser?.id === user.id;
             const pending = pendingId === user.id;
             return (
@@ -199,6 +241,7 @@ export default function AdminUsersPage() {
           })}
         </TableBody>
       </TableShell>
+      {data && <TablePagination pageInfo={data.pageInfo} onPageChange={setPage} />}
     </div>
   );
 }
