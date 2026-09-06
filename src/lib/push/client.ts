@@ -6,6 +6,7 @@
  */
 import { apiMutate } from "@/lib/api/fetcher";
 import { requestNotificationPermission } from "@/lib/browser-notifications";
+import { isStandaloneDisplay } from "@/lib/pwa";
 import { PUSH_SUBSCRIPTIONS_PATH } from "./payload";
 
 export type PushStatus =
@@ -21,13 +22,6 @@ const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? "";
 
 function isIos() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent);
-}
-
-function isStandalone() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    ("standalone" in navigator && (navigator as { standalone?: boolean }).standalone === true)
-  );
 }
 
 export function pushSupported() {
@@ -55,7 +49,7 @@ async function registration() {
 
 export async function getPushStatus(): Promise<PushStatus> {
   if (!pushSupported()) {
-    return typeof navigator !== "undefined" && isIos() && !isStandalone() ? "needs-install" : "unsupported";
+    return typeof navigator !== "undefined" && isIos() && !isStandaloneDisplay() ? "needs-install" : "unsupported";
   }
   if (Notification.permission === "denied") return "denied";
   const reg = await registration();

@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import type { VariantProps } from "class-variance-authority";
+import { isStandaloneDisplay } from "@/lib/pwa";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -40,13 +41,6 @@ function subscribeStandalone(onChange: () => void) {
   return () => query.removeEventListener("change", onChange);
 }
 
-function isStandalone() {
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    ("standalone" in navigator && (navigator as { standalone?: boolean }).standalone === true)
-  );
-}
-
 /**
  * "Install app" CTA. Triggers the native PWA install prompt where the browser
  * supports `beforeinstallprompt`; otherwise shows add-to-home-screen guidance.
@@ -56,7 +50,7 @@ export function InstallAppButton({
   size = "lg",
   variant = "default",
 }: VariantProps<typeof buttonVariants>) {
-  const standalone = useSyncExternalStore(subscribeStandalone, isStandalone, () => false);
+  const standalone = useSyncExternalStore(subscribeStandalone, isStandaloneDisplay, () => false);
   const installEvent = useSyncExternalStore(subscribePrompt, () => deferredPrompt, () => null);
   const [justInstalled, setJustInstalled] = useState(false);
 

@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, FetchError } from "@/lib/api/fetcher";
 import { postLoginPath } from "@/lib/auth/redirect";
+import { isStandaloneDisplay } from "@/lib/pwa";
 import type { SessionUser } from "@/types";
 
 function GoogleIcon() {
@@ -33,8 +34,12 @@ function GoogleIcon() {
 }
 
 /**
- * "Continue with Google" — Firebase popup sign-in. The Firebase SDK is
- * imported lazily on click so it stays out of the main bundle.
+ * "Continue with Google". In a browser tab this is the Firebase popup, with
+ * the SDK imported lazily on click so it stays out of the main bundle. In the
+ * installed app (where popups can't return — iOS especially) or when the
+ * popup is blocked, it hands off to the server-side OAuth flow, whose
+ * redirect and first-party cookies work everywhere Safari's tracking
+ * prevention would break Firebase's redirect.
  */
 export function GoogleButton({ next }: { next?: string }) {
   const router = useRouter();
@@ -71,39 +76,25 @@ export function GoogleButton({ next }: { next?: string }) {
     );
   };
 
-  // Collect the result when we land back from the redirect flow.
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const client = await import("@/lib/firebase/client");
-      if (!client.hasPendingRedirect() || !client.isFirebaseConfigured()) return;
-      setPending(true);
-      try {
-        const idToken = await client.consumeRedirectResult();
-        if (!cancelled && idToken) await finishLogin(idToken);
-      } catch (err) {
-        if (!cancelled) reportError(err);
-      } finally {
-        if (!cancelled) setPending(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Full-page navigation (not the router: the route answers with a redirect
+  // to Google). The callback sets the session cookie and lands on the
+  // post-login page, so `pending` stays on until the page is replaced.
+  const signInWithServerFlow = () => {
+    const url = new URL("/api/auth/google", window.location.origin);
+    if (next) url.searchParams.set("next", next);
+    window.location.assign(url.href);
+  };
 
   async function handleClick() {
     setPending(true);
+    if (isStandaloneDisplay()) {
+      signInWithServerFlow();
+      return;
+    }
     try {
       const client = await import("@/lib/firebase/client");
       if (!client.isFirebaseConfigured()) {
-        toast.error("Google sign-in isn't configured yet.");
-        return;
-      }
-      // Installed PWAs (especially iOS) can't round-trip a popup — redirect instead.
-      if (client.isStandaloneDisplay()) {
-        await client.signInWithGoogleRedirect();
+        signInWithServerFlow();
         return;
       }
       try {
@@ -114,14 +105,14 @@ export function GoogleButton({ next }: { next?: string }) {
           code === "auth/popup-blocked" ||
           code === "auth/operation-not-supported-in-this-environment"
         ) {
-          await client.signInWithGoogleRedirect();
+          signInWithServerFlow();
           return;
         }
         throw err;
       }
+      setPending(false);
     } catch (err) {
       reportError(err);
-    } finally {
       setPending(false);
     }
   }

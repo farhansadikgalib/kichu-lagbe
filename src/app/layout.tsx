@@ -45,6 +45,10 @@ export const metadata: Metadata = {
     title: `${BRAND.name} – Fast Late-Night Delivery in ${SERVICE.area}`,
     description: BRAND.description,
   },
+  icons: {
+    icon: "/icon-192.png?v=5",
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
