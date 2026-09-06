@@ -121,9 +121,10 @@ function ensureListener() {
       globalThis.__dhOrderListener = null;
       client.release(err);
     });
-    // Pooled connections are reaped server-side after a minute idle (see
-    // lib/db); a LISTEN session is idle by nature, so exempt this one.
-    await client.query("set idle_session_timeout = 0");
+    // Pooled connections are reaped server-side when idle and capped by a
+    // statement timeout (see lib/db); a LISTEN session is idle and long-lived
+    // by nature, so exempt this one from both.
+    await client.query("set idle_session_timeout = 0; set statement_timeout = 0");
     await client.query(`listen ${CHANNEL}`);
     return client;
   })();
