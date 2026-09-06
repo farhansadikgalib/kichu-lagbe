@@ -206,6 +206,13 @@ export function RegisterForm({ showDemoHint }: RegisterFormProps = {}) {
         >
           {submitting ? "Creating account…" : "Create account"}
         </Button>
+        <p className="text-center text-xs text-muted-foreground">
+          By creating an account you agree to our{" "}
+          <Link href="/privacy" className="text-foreground underline-offset-4 hover:underline">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
     </AuthCard>
   );
