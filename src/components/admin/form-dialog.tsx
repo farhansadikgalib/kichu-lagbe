@@ -2,6 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +19,8 @@ interface FormDialogProps {
   description: string;
   submitLabel?: string;
   isSubmitting?: boolean;
+  /** `lg` for forms with repeatable rows; `xl` for multi-column editors. */
+  size?: "default" | "lg" | "xl";
   onSubmit: () => void | Promise<void>;
   children: ReactNode;
 }
@@ -30,6 +33,7 @@ export function FormDialog({
   description,
   submitLabel = "Save",
   isSubmitting = false,
+  size = "default",
   onSubmit,
   children,
 }: FormDialogProps) {
@@ -40,7 +44,12 @@ export function FormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
+      <DialogContent
+        className={cn(
+          "max-h-[85dvh] overflow-y-auto",
+          size === "xl" ? "sm:max-w-3xl" : size === "lg" ? "sm:max-w-lg" : "sm:max-w-md",
+        )}
+      >
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>

@@ -13,7 +13,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { formatBDT, formatDate, formatOrderNumber } from "@/lib/format";
+import { formatBDT, formatDate, formatLineName, formatOrderNumber } from "@/lib/format";
 import type { OrderWithItems } from "@/types";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { PriceSummary } from "@/components/orders/price-summary";
@@ -30,7 +30,7 @@ interface RiderOrderCardProps {
  */
 export function RiderOrderCard({ order, actions }: RiderOrderCardProps) {
   const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
-  const itemsSummary = order.items.map((item) => `${item.productName} ×${item.quantity}`).join(", ");
+  const itemsSummary = order.items.map((item) => `${formatLineName(item)} ×${item.quantity}`).join(", ");
   const collectCod = order.status === "confirmed" || order.status === "picked_up";
 
   return (
@@ -91,7 +91,7 @@ export function RiderOrderCard({ order, actions }: RiderOrderCardProps) {
               {order.items.map((item) => (
                 <li key={item.id} className="flex items-center justify-between gap-3 text-sm">
                   <span>
-                    {item.productName}
+                    {formatLineName(item)}
                     <span className="text-muted-foreground">
                       {" "}
                       × {item.quantity} @ {formatBDT(item.unitPrice)}

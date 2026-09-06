@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatBDT } from "@/lib/format";
+import { formatBDT, formatLineName } from "@/lib/format";
 import type { OrderItem } from "@/types";
 
 interface OrderItemsTableProps {
@@ -28,7 +28,7 @@ export function OrderItemsTable({ items }: OrderItemsTableProps) {
       <TableBody>
         {items.map((item) => (
           <TableRow key={item.id}>
-            <TableCell className="font-medium">{item.productName}</TableCell>
+            <TableCell className="font-medium">{formatLineName(item)}</TableCell>
             <TableCell className="text-right tabular-nums">
               {formatBDT(item.unitPrice)}
             </TableCell>

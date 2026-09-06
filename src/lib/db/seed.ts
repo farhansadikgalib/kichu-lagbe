@@ -1,6 +1,7 @@
 /**
  * Seed script — idempotent. Run with: npm run db:seed
- * Populates categories, products, coupons, demo users, and app settings.
+ * Populates categories, products, coupons, demo users, app settings, and a
+ * set of demo orders across every status for the admin console.
  */
 import bcrypt from "bcryptjs";
 import { db } from "./index";
@@ -12,6 +13,7 @@ import {
   users,
 } from "./schema";
 import seedData from "./seed-data.json";
+import { seedDemoOrders } from "./seed-orders";
 import { DEFAULT_DELIVERY_CHARGE } from "@/lib/constants";
 
 async function seed() {
@@ -122,6 +124,9 @@ async function seed() {
     ])
     .onConflictDoNothing();
   console.log("app settings seeded");
+
+  /* Demo orders — every status, spread over the last ten nights */
+  await seedDemoOrders(DEFAULT_DELIVERY_CHARGE);
 
   console.log("Done.");
   process.exit(0);

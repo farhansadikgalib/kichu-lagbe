@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import {
   Bike,
   LayoutDashboard,
+  LayoutTemplate,
   Menu,
   Package,
   ShoppingBasket,
@@ -28,10 +29,14 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/orders", label: "Orders", icon: Package },
   { href: "/admin/products", label: "Products", icon: ShoppingBasket },
+  { href: "/admin/home", label: "Home page", icon: LayoutTemplate },
   { href: "/admin/coupons", label: "Coupons", icon: TicketPercent },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/delivery", label: "Delivery", icon: Bike },
 ] as const;
+
+/** Editors that need the whole viewport instead of the reading-width column. */
+const WIDE_ROUTES = ["/admin/home"];
 
 function isActive(pathname: string, href: string) {
   return href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
@@ -104,6 +109,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const current = NAV_ITEMS.find((item) => isActive(pathname, item.href));
+  const wide = WIDE_ROUTES.some((route) => pathname.startsWith(route));
   const closeMobile = () => setMobileOpen(false);
 
   return (
@@ -156,7 +162,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="flex-1 p-4 md:p-6">
-          <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <div className={cn("mx-auto w-full", wide ? "max-w-none" : "max-w-6xl")}>{children}</div>
         </main>
       </div>
     </div>
