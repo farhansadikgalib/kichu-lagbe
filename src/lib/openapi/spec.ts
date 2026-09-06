@@ -780,33 +780,160 @@ const paths: Record<string, Schema> = {
   },
 };
 
+/* ------------------------------- Audiences --------------------------------
+ *
+ * Three role-scoped docs are served alongside the full one: /api-docs/customer,
+ * /api-docs/admin, /api-docs/rider. Every operation must be mapped below —
+ * `scopeToAudience` throws on anything missing, so a new endpoint can't
+ * silently vanish from (or leak into) a role's doc.
+ */
+
+export type Audience = "customer" | "admin" | "rider";
+
+/** Which audience-scoped doc(s) each operation appears in, keyed "METHOD /path". */
+const AUDIENCE: Record<string, Audience[]> = {
+  // Auth — shared account actions go in all three; acquisition flows
+  // (self-register, Google) are customer-only, since staff accounts are
+  // created by an admin (POST /api/admin/users) and sign in with a password.
+  "POST /api/auth/register": ["customer"],
+  "POST /api/auth/login": ["customer", "admin", "rider"],
+  "POST /api/auth/logout": ["customer", "admin", "rider"],
+  "GET /api/auth/session": ["customer", "admin", "rider"],
+  "GET /api/auth/profile": ["customer", "admin", "rider"],
+  "PATCH /api/auth/profile": ["customer", "admin", "rider"],
+  "POST /api/auth/change-password": ["customer", "admin", "rider"],
+  "POST /api/auth/firebase": ["customer"],
+  "GET /api/auth/google": ["customer"],
+  "GET /api/auth/google/callback": ["customer"],
+
+  // Catalog — public storefront browsing; media is fetched by every client
+  // that renders a product photo.
+  "GET /api/products": ["customer"],
+  "GET /api/categories": ["customer"],
+  "GET /api/delivery": ["customer"],
+  "GET /api/media/{id}": ["customer", "admin", "rider"],
+  "POST /api/coupons/validate": ["customer"],
+
+  // Orders — placing and tracking is customer-only; a single order is
+  // readable by its customer, its rider, and admins, so that one is shared.
+  "GET /api/orders": ["customer"],
+  "POST /api/orders": ["customer"],
+  "GET /api/orders/{id}": ["customer", "admin", "rider"],
+  "GET /api/orders/events": ["customer"],
+  "GET /api/geocode/reverse": ["customer"],
+
+  // Notifications — generic, signed-in-user infra used by every role's shell.
+  "GET /api/notifications": ["customer", "admin", "rider"],
+  "PATCH /api/notifications": ["customer", "admin", "rider"],
+  "POST /api/push/subscriptions": ["customer", "admin", "rider"],
+  "DELETE /api/push/subscriptions": ["customer", "admin", "rider"],
+
+  // Rider — the work queue, also usable by admins.
+  "GET /api/rider/orders": ["rider", "admin"],
+  "PATCH /api/rider/orders/{id}": ["rider", "admin"],
+
+  // Admin — console only.
+  "GET /api/admin/stats": ["admin"],
+  "GET /api/admin/orders": ["admin"],
+  "PATCH /api/admin/orders/{id}": ["admin"],
+  "GET /api/admin/products": ["admin"],
+  "POST /api/admin/products": ["admin"],
+  "PATCH /api/admin/products/{id}": ["admin"],
+  "DELETE /api/admin/products/{id}": ["admin"],
+  "GET /api/admin/coupons": ["admin"],
+  "POST /api/admin/coupons": ["admin"],
+  "PATCH /api/admin/coupons/{id}": ["admin"],
+  "DELETE /api/admin/coupons/{id}": ["admin"],
+  "GET /api/admin/users": ["admin"],
+  "PATCH /api/admin/users/{id}": ["admin"],
+  "GET /api/admin/delivery": ["admin"],
+  "PATCH /api/admin/delivery": ["admin"],
+  "GET /api/admin/home": ["admin"],
+  "PUT /api/admin/home": ["admin"],
+  "POST /api/admin/media": ["admin"],
+  "GET /api/admin/events": ["admin"],
+};
+
+/** Keeps only the operations mapped to `audience`; drops paths left empty. */
+function scopeToAudience(allPaths: Record<string, Schema>, audience: Audience) {
+  const scoped: Record<string, Schema> = {};
+  for (const [path, methods] of Object.entries(allPaths)) {
+    const kept: Record<string, unknown> = {};
+    for (const [method, operation] of Object.entries(methods)) {
+      const key = `${method.toUpperCase()} ${path}`;
+      const audiences = AUDIENCE[key];
+      if (!audiences) {
+        throw new Error(`openapi/spec.ts: no audience mapping for "${key}" — add one to AUDIENCE.`);
+      }
+      if (audiences.includes(audience)) kept[method] = operation;
+    }
+    if (Object.keys(kept).length > 0) scoped[path] = kept;
+  }
+  return scoped;
+}
+
+const ALL_TAGS = [
+  { name: "Auth", description: "Sessions, registration, profile" },
+  { name: "Catalog", description: "Public products, categories, coupons, media" },
+  { name: "Orders", description: "Customer checkout and order tracking" },
+  { name: "Notifications", description: "In-app bell and Web Push" },
+  { name: "Rider", description: "Rider work queue and delivery actions" },
+  { name: "Admin", description: "Console: reports, orders, catalog, users, settings" },
+];
+
+const AUDIENCE_INFO: Record<Audience, { label: string; blurb: string }> = {
+  customer: {
+    label: "Customer",
+    blurb: "Browsing, checkout, order tracking, and account endpoints used by the storefront.",
+  },
+  admin: {
+    label: "Admin Console",
+    blurb: "Reports, order management, catalog, coupons, users, and site settings. Every operation requires the `admin` role.",
+  },
+  rider: {
+    label: "Rider",
+    blurb: "The delivery work queue: claim an order, then move it through picked-up and delivered. Requires the `rider` (or `admin`) role.",
+  },
+};
+
 /* -------------------------------- Document -------------------------------- */
 
-export function buildOpenApiSpec() {
+/** Omit `audience` for the full, unfiltered spec covering every role. */
+export function buildOpenApiSpec(audience?: Audience) {
+  const scopedPaths = audience ? scopeToAudience(paths, audience) : paths;
+  const usedTags = new Set(
+    Object.values(scopedPaths).flatMap((methods) =>
+      Object.values(methods as Record<string, { tags?: string[] }>).flatMap((op) => op.tags ?? []),
+    ),
+  );
+
+  const info = audience ? AUDIENCE_INFO[audience] : null;
+  const title = info ? `${BRAND.name} API — ${info.label}` : `${BRAND.name} API`;
+  const scopeLine = info
+    ? [`Scoped to the **${info.label}** role. ${info.blurb}`, ""]
+    : [`Full reference covering every role — storefront, rider app, and admin console.`, ""];
+  const demoLine =
+    audience === "customer"
+      ? ["**Demo account.** `customer@kichulagbe.com` / `Password123!` — sign in with it below and try any endpoint.", ""]
+      : [];
+
   return {
     openapi: "3.1.0",
     info: {
-      title: `${BRAND.name} API`,
+      title,
       version: "1.0.0",
       description: [
-        `HTTP API behind the ${BRAND.name} storefront, rider app and admin console.`,
-        "",
+        ...scopeLine,
         "**Envelope.** Every JSON route returns `{ \"data\": … }` on success and `{ \"error\": \"message\" }` with a 4xx/5xx status on failure. Validation errors are 422 and name the first bad field.",
         "",
         "**Auth.** Sign in with `POST /api/auth/login` (or register); the server sets an HttpOnly `dl_session` cookie that the browser sends automatically. In this UI, click **Try it out** on a login request first — the cookie then applies to every other request. Role requirements are noted per operation.",
         "",
+        ...demoLine,
         "**Money.** All amounts are whole BDT (৳) integers.",
       ].join("\n"),
     },
     servers: [{ url: "/", description: "This deployment" }],
-    tags: [
-      { name: "Auth", description: "Sessions, registration, profile" },
-      { name: "Catalog", description: "Public products, categories, coupons, media" },
-      { name: "Orders", description: "Customer checkout and order tracking" },
-      { name: "Notifications", description: "In-app bell and Web Push" },
-      { name: "Rider", description: "Rider work queue and delivery actions" },
-      { name: "Admin", description: "Console: reports, orders, catalog, users, settings" },
-    ],
+    tags: ALL_TAGS.filter((tag) => usedTags.has(tag.name)),
     components: {
       securitySchemes: {
         session: {
@@ -818,7 +945,7 @@ export function buildOpenApiSpec() {
       },
       schemas,
     },
-    paths,
+    paths: scopedPaths,
   };
 }
 
