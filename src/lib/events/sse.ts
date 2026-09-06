@@ -4,6 +4,14 @@ import type { OrderEvent } from "@/types";
 
 const HEARTBEAT_MS = 25_000;
 const DEDUP_WINDOW = 200;
+/**
+ * Serverless hosts don't reliably tell a streaming function that the client
+ * went away, so a stream whose browser tab closed would otherwise run — and
+ * hold its LISTEN slot — until the platform kills it. Close every stream
+ * ourselves after this long; EventSource reconnects with Last-Event-ID and
+ * the replay fills any gap.
+ */
+const MAX_STREAM_MS = 4 * 60_000;
 
 interface StreamOptions {
   /** Which bus events this subscriber may see; everything else is dropped. */
@@ -47,6 +55,7 @@ export function orderEventStream(request: Request, { filter, replay }: StreamOpt
         if (closed) return;
         closed = true;
         clearInterval(heartbeat);
+        clearTimeout(lifetime);
         unsubscribe();
         try {
           controller.close();
@@ -54,6 +63,7 @@ export function orderEventStream(request: Request, { filter, replay }: StreamOpt
           /* already closed by the client */
         }
       };
+      const lifetime = setTimeout(cleanup, MAX_STREAM_MS);
       request.signal.addEventListener("abort", cleanup);
 
       write("retry: 3000\nevent: ready\ndata: {}\n\n");

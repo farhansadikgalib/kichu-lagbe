@@ -18,9 +18,20 @@ import type { Order, OrderEvent, OrderEventType } from "@/types";
 const CHANNEL = "order_events";
 const REPLAY_LIMIT = 20;
 
+/**
+ * The LISTEN connection is idle by nature, so the server would reap it like
+ * any other idle session. While someone is subscribed we ping it well inside
+ * its timeout; once nothing is subscribed — or the instance is frozen and the
+ * pings stop — the server reclaims the slot. Reaped listeners reconnect on
+ * demand, so a live stream survives with at most a momentary gap.
+ */
+const LISTENER_IDLE_TIMEOUT = "90s";
+const LISTENER_PING_MS = 30_000;
+
 declare global {
   var __dhOrderBus: EventEmitter | undefined;
   var __dhOrderListener: Promise<PoolClient> | null | undefined;
+  var __dhOrderKeepalive: ReturnType<typeof setInterval> | null | undefined;
 }
 
 /** Singleton bus — survives HMR in development. */
@@ -102,6 +113,11 @@ export async function replayOrdersSince(since: Date): Promise<OrderEvent[]> {
   }));
 }
 
+function stopKeepalive() {
+  if (globalThis.__dhOrderKeepalive) clearInterval(globalThis.__dhOrderKeepalive);
+  globalThis.__dhOrderKeepalive = null;
+}
+
 /** One dedicated connection per server holds LISTEN; re-opened after an error. */
 function ensureListener() {
   if (globalThis.__dhOrderListener) return globalThis.__dhOrderListener;
@@ -116,23 +132,33 @@ function ensureListener() {
         console.error("[order-events] bad payload", err);
       }
     });
-    client.on("error", (err) => {
-      console.error("[order-events] listener dropped", err);
-      globalThis.__dhOrderListener = null;
+    client.on("error", (err: Error & { code?: string }) => {
+      // 57P05 is the server reaping us after the pings stopped — routine.
+      if (err.code !== "57P05") console.error("[order-events] listener dropped", err);
+      stopKeepalive();
+      if (globalThis.__dhOrderListener === listener) globalThis.__dhOrderListener = null;
       client.release(err);
+      // Someone is still streaming: come back on a fresh connection.
+      if (bus.listenerCount("event") > 0) void ensureListener();
     });
-    // Pooled connections are reaped server-side when idle and capped by a
-    // statement timeout (see lib/db); a LISTEN session is idle and long-lived
-    // by nature, so exempt this one from both.
-    await client.query("set idle_session_timeout = 0; set statement_timeout = 0");
+    // Pooled connections are capped by a statement timeout (see lib/db); a
+    // LISTEN session runs no statements, so lift that, and give it its own
+    // idle cutoff that the keepalive below stays inside.
+    await client.query(
+      `set idle_session_timeout = '${LISTENER_IDLE_TIMEOUT}'; set statement_timeout = 0`,
+    );
     await client.query(`listen ${CHANNEL}`);
+    stopKeepalive();
+    globalThis.__dhOrderKeepalive = setInterval(() => {
+      client.query("select 1").catch(() => undefined);
+    }, LISTENER_PING_MS);
     return client;
   })();
 
   globalThis.__dhOrderListener = listener;
   listener.catch((err) => {
     console.error("[order-events] listen failed", err);
-    globalThis.__dhOrderListener = null;
+    if (globalThis.__dhOrderListener === listener) globalThis.__dhOrderListener = null;
   });
   return listener;
 }
@@ -142,6 +168,7 @@ async function releaseListener() {
   const pending = globalThis.__dhOrderListener;
   if (!pending) return;
   globalThis.__dhOrderListener = null;
+  stopKeepalive();
   try {
     const client = await pending;
     // A subscriber may have arrived while we awaited; they've re-ensured a
