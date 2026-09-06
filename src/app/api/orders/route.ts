@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { coupons, orderItems, orders, products, productVariants } from "@/lib/db/schema";
@@ -6,8 +7,9 @@ import { requireUser } from "@/lib/auth/guards";
 import { couponDiscount } from "@/lib/pricing";
 import { checkoutSchema } from "@/lib/validation/order";
 import { ApiError, handleApiError, ok } from "@/lib/api/response";
-import { notify } from "@/lib/notify";
-import { formatOrderNumber } from "@/lib/format";
+import { notify, notifyAdmins } from "@/lib/notify";
+import { createOrderEvent, publishOrderEvent } from "@/lib/events/order-events";
+import { formatBDT, formatOrderNumber } from "@/lib/format";
 
 /** Customer's own orders, newest first. */
 export async function GET() {
@@ -106,6 +108,10 @@ export async function POST(request: Request) {
           customerName: input.customerName,
           phone: input.phone,
           addressDetails: input.addressDetails,
+          latitude: input.location?.lat ?? null,
+          longitude: input.location?.lng ?? null,
+          locationAccuracy:
+            input.location?.accuracy != null ? Math.round(input.location.accuracy) : null,
           note: input.note || null,
           subtotal,
           deliveryCharge,
@@ -128,6 +134,19 @@ export async function POST(request: Request) {
       `Your order ${formatOrderNumber(order.orderNumber)} has been received.`,
       `/orders/${order.id}`,
     );
+
+    // Tell the admin console after the customer has their confirmation: a
+    // persisted notification for the bell, then a live event for open consoles
+    // and the outbound webhook.
+    const itemCount = itemRows.reduce((n, row) => n + row.quantity, 0);
+    after(async () => {
+      await notifyAdmins(
+        `New order ${formatOrderNumber(order.orderNumber)}`,
+        `${order.customerName} · ${itemCount} ${itemCount === 1 ? "item" : "items"} · ${formatBDT(order.total)}`,
+        "/admin/orders",
+      );
+      await publishOrderEvent(createOrderEvent("order.created", session.sub, order, { itemCount }));
+    });
 
     return ok(order, { status: 201 });
   } catch (err) {

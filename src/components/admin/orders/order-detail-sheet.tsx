@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, MapPin, Phone, StickyNote, Wallet } from "lucide-react";
+import { Copy, ExternalLink, MapPin, Phone, StickyNote, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { OrderItemsTable } from "@/components/orders/order-items-table";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/sheet";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { formatDate, formatOrderNumber, formatRelativeTime } from "@/lib/format";
+import { formatAccuracy, mapsViewUrl } from "@/lib/maps";
 import type { AdminOrder, User } from "@/types";
 import { OrderStatusActions } from "./order-status-actions";
 import { RiderSelect } from "./rider-select";
@@ -125,6 +126,17 @@ function Detail({ order, riders, actions }: { order: AdminOrder; riders: User[] 
               <Copy />
             </Button>
           </div>
+          {order.latitude != null && order.longitude != null && (
+            <Button asChild variant="outline" size="sm" className="mt-2">
+              <a href={mapsViewUrl(order.latitude, order.longitude)} target="_blank" rel="noreferrer">
+                <ExternalLink data-icon="inline-start" aria-hidden />
+                Pinned location
+                {order.locationAccuracy != null && (
+                  <span className="text-muted-foreground">{formatAccuracy(order.locationAccuracy)}</span>
+                )}
+              </a>
+            </Button>
+          )}
           {order.note && (
             <p className="mt-3 flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm">
               <StickyNote className="mt-0.5 size-4 shrink-0 text-amber-400" aria-hidden />

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     const { page, pageSize } = parsePagination(url);
 
     const [rows, total] = await Promise.all([
-      listProducts({ includeUnavailable: true, search, page, pageSize }),
+      listProducts({ includeUnavailable: true, search, page, pageSize, order: "recent" }),
       countProducts({ includeUnavailable: true, search }),
     ]);
     return ok(paginate(rows, total, page, pageSize));

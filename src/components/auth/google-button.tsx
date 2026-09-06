@@ -45,10 +45,9 @@ export function GoogleButton({ next }: { next?: string }) {
     const user = await apiMutate<SessionUser>("/api/auth/firebase", {
       body: { idToken },
     });
-    await mutate();
+    await mutate(user, { revalidate: false });
     toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
-    router.push(postLoginPath(user.role, next));
-    router.refresh();
+    router.replace(postLoginPath(user.role, next));
   };
 
   const reportError = (err: unknown) => {
@@ -59,6 +58,12 @@ export function GoogleButton({ next }: { next?: string }) {
     }
     if (code === "auth/unauthorized-domain") {
       toast.error("This domain isn't authorized for Google sign-in yet.");
+      return;
+    }
+    if (code === "auth/operation-not-allowed") {
+      toast.error("Google sign-in isn't enabled for this Firebase project yet.", {
+        description: "Firebase console → Authentication → Sign-in method → Google.",
+      });
       return;
     }
     toast.error(

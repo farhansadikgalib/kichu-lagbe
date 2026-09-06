@@ -70,10 +70,10 @@ export function RegisterForm({ showDemoHint }: RegisterFormProps = {}) {
       const user = await apiMutate<SessionUser>("/api/auth/register", {
         body: parsed.data,
       });
-      await mutate();
+      // The response already is the session: seed the cache and navigate.
+      await mutate(user, { revalidate: false });
       toast.success(`Welcome to KichuLagbe, ${user.name.split(" ")[0]}!`);
-      router.push(nextPath);
-      router.refresh();
+      router.replace(nextPath);
     } catch (err) {
       toast.error(
         err instanceof FetchError

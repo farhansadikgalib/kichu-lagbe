@@ -74,7 +74,7 @@ export const SECTION_META: Record<SectionType, SectionMeta> = {
         kind: "list",
         itemLabel: "Quick link",
         max: 6,
-        newItem: { emoji: "✨", label: "", href: "/category/all" },
+        newItem: { emoji: "", label: "", href: "/category/all" },
         fields: [
           { key: "emoji", label: "Emoji", kind: "text" },
           { key: "label", label: "Label", kind: "text" },
@@ -132,7 +132,7 @@ export const SECTION_META: Record<SectionType, SectionMeta> = {
         itemLabel: "Tile",
         min: 1,
         max: 6,
-        newItem: { name: "", emoji: "✨", image: "", description: "", href: "/category/all" },
+        newItem: { name: "", emoji: "", image: "", description: "", href: "/category/all" },
         fields: [
           { key: "name", label: "Name", kind: "text" },
           { key: "emoji", label: "Emoji", kind: "text" },

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ImageIcon, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { mutate as mutateGlobal } from "swr";
 import {
   PageHeader,
   TablePagination,
@@ -38,13 +39,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useCategories } from "@/hooks/use-catalog";
 import { apiMutate } from "@/lib/api/fetcher";
-import { formatBDT } from "@/lib/format";
+import { formatBDT, formatDate } from "@/lib/format";
 import { isExternalImage } from "@/lib/media/url";
 import { startingPrice } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
 import type { ProductWithCategory } from "@/types";
 
-const COLUMN_COUNT = 6;
+const COLUMN_COUNT = 7;
 const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 20;
 
@@ -104,7 +105,7 @@ export default function AdminProductsPage() {
     return () => window.clearTimeout(timer);
   }, [query]);
 
-  const { data, error, isLoading, mutate } = useAdminProducts({
+  const { data, error, isLoading } = useAdminProducts({
     search,
     page,
     pageSize: PAGE_SIZE,
@@ -112,6 +113,10 @@ export default function AdminProductsPage() {
   const { data: categories } = useCategories();
 
   const products = data?.items ?? [];
+
+  /** Re-fetch every cached product page, not just the one on screen. */
+  const refreshProducts = () =>
+    mutateGlobal((key) => typeof key === "string" && key.startsWith("/api/admin/products"));
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<ProductWithCategory | null>(null);
@@ -184,8 +189,12 @@ export default function AdminProductsPage() {
       } else {
         await apiMutate("/api/admin/products", { body: payload });
         toast.success(`"${payload.name}" created.`);
+        // New products sort first, so show the first unfiltered page.
+        setQuery("");
+        setSearch("");
+        setPage(1);
       }
-      await mutate();
+      await refreshProducts();
       setDialogOpen(false);
     } catch (err) {
       toast.error(errorMessage(err));
@@ -204,7 +213,7 @@ export default function AdminProductsPage() {
       toast.success(
         `"${product.name}" is now ${isAvailable ? "available" : "unavailable"}.`,
       );
-      await mutate();
+      await refreshProducts();
     } catch (err) {
       toast.error(errorMessage(err));
     } finally {
@@ -217,8 +226,8 @@ export default function AdminProductsPage() {
     setPendingId(deleting.id);
     try {
       await apiMutate(`/api/admin/products/${deleting.id}`, { method: "DELETE" });
-      toast.success(`"${deleting.name}" removed from the catalog.`);
-      await mutate();
+      toast.success(`"${deleting.name}" deleted.`);
+      await refreshProducts();
       setDeleting(null);
     } catch (err) {
       toast.error(errorMessage(err));
@@ -253,6 +262,7 @@ export default function AdminProductsPage() {
             <TableHead>Category</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Available</TableHead>
+            <TableHead>Updated</TableHead>
             <TableHead>
               <span className="sr-only">Actions</span>
             </TableHead>
@@ -323,6 +333,9 @@ export default function AdminProductsPage() {
                   }
                   aria-label={`Toggle availability of ${product.name}`}
                 />
+              </TableCell>
+              <TableCell className="whitespace-nowrap text-muted-foreground">
+                {formatDate(product.updatedAt)}
               </TableCell>
               <TableCell className="text-right">
                 <div className="inline-flex gap-1">

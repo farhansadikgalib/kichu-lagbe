@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -5,6 +6,7 @@ import { orders } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth/guards";
 import { ApiError, handleApiError, ok } from "@/lib/api/response";
 import { notify } from "@/lib/notify";
+import { createOrderEvent, publishOrderEvent } from "@/lib/events/order-events";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import { formatOrderNumber } from "@/lib/format";
 
@@ -36,6 +38,11 @@ export async function PATCH(
         `A rider has accepted your order ${formatOrderNumber(claimed.orderNumber)}.`,
         `/orders/${claimed.id}`,
       );
+      after(() =>
+        publishOrderEvent(
+          createOrderEvent("order.updated", session.sub, claimed, { riderName: session.name }),
+        ),
+      );
       return ok(claimed);
     }
 
@@ -59,6 +66,11 @@ export async function PATCH(
       `Order ${ORDER_STATUS_LABELS[nextStatus].toLowerCase()}`,
       `Your order ${formatOrderNumber(updated.orderNumber)} is now ${ORDER_STATUS_LABELS[nextStatus].toLowerCase()}.`,
       `/orders/${updated.id}`,
+    );
+    after(() =>
+      publishOrderEvent(
+        createOrderEvent("order.updated", session.sub, updated, { riderName: session.name }),
+      ),
     );
 
     return ok(updated);

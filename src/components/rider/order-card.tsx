@@ -1,7 +1,13 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MapPinIcon, PhoneIcon, ReceiptTextIcon, StickyNoteIcon } from "lucide-react";
+import {
+  MapPinIcon,
+  NavigationIcon,
+  PhoneIcon,
+  ReceiptTextIcon,
+  StickyNoteIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { formatBDT, formatDate, formatLineName, formatOrderNumber } from "@/lib/format";
+import { formatAccuracy, mapsDirectionsUrl } from "@/lib/maps";
 import type { OrderWithItems } from "@/types";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { PriceSummary } from "@/components/orders/price-summary";
@@ -59,6 +66,22 @@ export function RiderOrderCard({ order, actions }: RiderOrderCardProps) {
           <MapPinIcon aria-hidden className="mt-0.5 size-3.5 shrink-0" />
           <span>{order.addressDetails}</span>
         </p>
+        {order.latitude != null && order.longitude != null && (
+          <a
+            href={mapsDirectionsUrl(order.latitude, order.longitude)}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-primary/15 px-3 font-medium text-primary transition-colors hover:bg-primary/25"
+          >
+            <NavigationIcon aria-hidden className="size-3.5" />
+            Navigate to pin
+            {order.locationAccuracy != null && (
+              <span className="font-normal text-primary/70">
+                {formatAccuracy(order.locationAccuracy)}
+              </span>
+            )}
+          </a>
+        )}
         {order.note && (
           <p className="flex gap-1.5 rounded-lg bg-amber-500/10 px-2.5 py-1.5 text-amber-400">
             <StickyNoteIcon aria-hidden className="mt-0.5 size-3.5 shrink-0" />

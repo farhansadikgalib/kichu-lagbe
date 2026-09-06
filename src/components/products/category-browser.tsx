@@ -114,9 +114,11 @@ export function CategoryBrowser({ slug }: CategoryBrowserProps) {
             className="motion-safe:animate-fade-up mt-2 flex items-center gap-3 text-3xl font-bold text-balance sm:text-4xl md:text-5xl"
             style={{ animationDelay: "0.06s" }}
           >
-            <span aria-hidden className="text-2xl sm:text-3xl md:text-4xl">
-              {tab.emoji}
-            </span>
+            {tab.emoji && (
+              <span aria-hidden className="text-2xl sm:text-3xl md:text-4xl">
+                {tab.emoji}
+              </span>
+            )}
             {tab.title}
           </h1>
           <p

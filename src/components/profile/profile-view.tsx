@@ -17,6 +17,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Reveal } from "@/components/motion";
 import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
+import { PushToggle } from "@/components/pwa/push-toggle";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, swrFetcher } from "@/lib/api/fetcher";
@@ -140,6 +141,20 @@ export function ProfileView() {
                   mutateSession();
                 }}
               />
+            </CardContent>
+          </Card>
+        </Reveal>
+
+        <Reveal delay={0.08}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Notifications</CardTitle>
+              <CardDescription>
+                Order confirmations, rider updates and delivery alerts on this device.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PushToggle />
             </CardContent>
           </Card>
         </Reveal>

@@ -1,4 +1,4 @@
-import { and, asc, count, eq, ilike, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { categories, products, productVariants } from "@/lib/db/schema";
 import type { Category, Product, ProductVariant, ProductWithCategory } from "@/types";
@@ -11,6 +11,8 @@ interface ListProductsOptions {
   /** Page window (1-indexed); omit for the full unpaginated list (storefront use). */
   page?: number;
   pageSize?: number;
+  /** `storefront` (default): category then name. `recent`: last edited or created first. */
+  order?: "storefront" | "recent";
 }
 
 /**
@@ -54,6 +56,7 @@ export async function listProducts({
   includeUnavailable = false,
   page,
   pageSize,
+  order = "storefront",
 }: ListProductsOptions = {}): Promise<ProductWithCategory[]> {
   const conditions = [];
   if (!includeUnavailable) conditions.push(eq(products.isAvailable, true));
@@ -66,7 +69,11 @@ export async function listProducts({
     .from(products)
     .innerJoin(categories, eq(products.categoryId, categories.id))
     .where(where)
-    .orderBy(asc(categories.sortOrder), asc(products.name))
+    .orderBy(
+      ...(order === "recent"
+        ? [desc(products.updatedAt), desc(products.createdAt)]
+        : [asc(categories.sortOrder), asc(products.name)]),
+    )
     .$dynamic();
 
   if (page && pageSize) query = query.limit(pageSize).offset((page - 1) * pageSize);

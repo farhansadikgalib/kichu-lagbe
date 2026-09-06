@@ -80,6 +80,33 @@ export type AdminOrdersPage = Paginated<AdminOrder> & {
   counts: Record<OrderStatus, number>;
 };
 
+/* ------------------------------ Order events ------------------------------ */
+
+export type OrderEventType = "order.created" | "order.updated";
+
+/** Pushed to the admin console (and any configured webhook) when an order changes. */
+export interface OrderEvent {
+  id: string;
+  type: OrderEventType;
+  /** ISO timestamp; doubles as the SSE event id so reconnects can replay from it. */
+  at: string;
+  /** Who caused it — a console skips toasts for its own user's actions. */
+  actorId: string | null;
+  order: {
+    id: string;
+    orderNumber: number;
+    /** Customer who placed it — the customer stream only forwards their own orders. */
+    userId: string;
+    status: OrderStatus;
+    customerName: string;
+    total: number;
+    /** Units across all lines; only known when the order is created. */
+    itemCount?: number;
+    note: string | null;
+    riderName?: string | null;
+  };
+}
+
 /* ------------------------------ Admin reports ----------------------------- */
 
 /** Reporting window for the admin dashboard, ending today (Asia/Dhaka). */

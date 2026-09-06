@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,9 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const nextParam = safeNextPath(searchParams.get("next"));
@@ -61,14 +64,21 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
     setErrors({});
     setSubmitting(true);
     try {
-      const user = await apiMutate<SessionUser>("/api/auth/login", { body: parsed.data });
-      await mutate();
+      const user = await apiMutate<SessionUser>("/api/auth/login", {
+        body: parsed.data,
+      });
+      // The response already is the session: seed the cache instead of
+      // refetching, and go straight to the destination. Staff land in their
+      // console unless they were sent here from a specific page.
+      await mutate(user, { revalidate: false });
       toast.success(`Welcome back, ${user.name.split(" ")[0]}!`);
-      // Staff land in their console unless they were sent here from a specific page.
-      router.push(postLoginPath(user.role, nextParam));
-      router.refresh();
+      router.replace(postLoginPath(user.role, nextParam));
     } catch (err) {
-      toast.error(err instanceof FetchError ? err.message : "Login failed. Please try again.");
+      toast.error(
+        err instanceof FetchError
+          ? err.message
+          : "Login failed. Please try again.",
+      );
       setSubmitting(false);
     }
   }
@@ -81,7 +91,10 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
       footer={
         <p>
           Don&apos;t have an account?{" "}
-          <Link href={registerHref} className="font-medium text-primary hover:underline">
+          <Link
+            href={registerHref}
+            className="font-medium text-primary hover:underline"
+          >
             Create one
           </Link>
         </p>
@@ -98,43 +111,62 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
       <GoogleButton next={nextParam ?? undefined} />
       <AuthDivider />
       <form onSubmit={handleSubmit} noValidate className="space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="login-email">Email</Label>
-          <Input
-            id="login-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            autoComplete="email"
-            aria-invalid={errors.email ? true : undefined}
-            aria-describedby={errors.email ? "login-email-error" : undefined}
-          />
-          {errors.email && (
-            <p id="login-email-error" role="alert" className="text-xs text-destructive">
-              {errors.email}
-            </p>
-          )}
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="login-password">Password</Label>
-          <PasswordInput
-            id="login-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            aria-invalid={errors.password ? true : undefined}
-            aria-describedby={errors.password ? "login-password-error" : undefined}
-          />
-          {errors.password && (
-            <p id="login-password-error" role="alert" className="text-xs text-destructive">
-              {errors.password}
-            </p>
-          )}
-        </div>
-        <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-          {submitting ? "Logging in…" : "Log in"}
-        </Button>
+        <fieldset disabled={submitting} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="login-email">Email</Label>
+            <Input
+              id="login-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? "login-email-error" : undefined}
+            />
+            {errors.email && (
+              <p
+                id="login-email-error"
+                role="alert"
+                className="text-xs text-destructive"
+              >
+                {errors.email}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="login-password">Password</Label>
+            <PasswordInput
+              id="login-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              aria-invalid={errors.password ? true : undefined}
+              aria-describedby={
+                errors.password ? "login-password-error" : undefined
+              }
+            />
+            {errors.password && (
+              <p
+                id="login-password-error"
+                role="alert"
+                className="text-xs text-destructive"
+              >
+                {errors.password}
+              </p>
+            )}
+          </div>
+          <Button
+            type="submit"
+            size="lg"
+            className="w-full"
+            disabled={submitting}
+            aria-busy={submitting}
+          >
+            {submitting && <Loader2 className="animate-spin" aria-hidden />}
+            {submitting ? "Logging in…" : "Log in"}
+          </Button>
+        </fieldset>
       </form>
     </AuthCard>
   );

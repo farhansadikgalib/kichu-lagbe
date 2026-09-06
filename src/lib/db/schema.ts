@@ -1,6 +1,7 @@
 import {
   boolean,
   customType,
+  doublePrecision,
   index,
   integer,
   pgEnum,
@@ -80,6 +81,8 @@ export const products = pgTable(
     imageUrl: text("image_url"),
     isAvailable: boolean("is_available").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    /** Bumped on every admin edit (details, availability, options) — the admin list sorts by it. */
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("products_slug_idx").on(t.slug)],
 );
@@ -150,6 +153,11 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   phone: text("phone").notNull(),
   addressDetails: text("address_details").notNull(),
+  /** Pinned delivery point from the customer's device, when they shared it. */
+  latitude: doublePrecision("latitude"),
+  longitude: doublePrecision("longitude"),
+  /** GPS accuracy radius in metres for the pin above. */
+  locationAccuracy: integer("location_accuracy"),
   note: text("note"),
   subtotal: integer("subtotal").notNull(),
   deliveryCharge: integer("delivery_charge").notNull(),
@@ -166,7 +174,8 @@ export const orderItems = pgTable("order_items", {
   orderId: uuid("order_id")
     .notNull()
     .references(() => orders.id, { onDelete: "cascade" }),
-  productId: uuid("product_id").references(() => products.id),
+  /** Cleared when the product is deleted; the name snapshot below keeps history readable. */
+  productId: uuid("product_id").references(() => products.id, { onDelete: "set null" }),
   variantId: uuid("variant_id").references(() => productVariants.id, {
     onDelete: "set null",
   }),
@@ -191,6 +200,32 @@ export const notifications = pgTable("notifications", {
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+/* ----------------------------- Push subscriptions -------------------------- */
+
+/**
+ * Web Push endpoints, one row per browser/device. The endpoint is unique, so
+ * a device that signs in as someone else simply moves to the new user.
+ */
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("push_subscriptions_endpoint_idx").on(t.endpoint),
+    index("push_subscriptions_user_idx").on(t.userId),
+  ],
+);
 
 /* --------------------------------- Settings -------------------------------- */
 

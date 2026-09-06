@@ -26,15 +26,13 @@ export async function PATCH(request: Request, { params }: Params) {
     };
 
     await db.transaction(async (tx) => {
-      // A variants-only PATCH has nothing to set on the product row itself.
-      const [found] =
-        Object.keys(changes).length > 0
-          ? await tx
-              .update(products)
-              .set(changes)
-              .where(eq(products.id, id))
-              .returning({ id: products.id })
-          : await tx.select({ id: products.id }).from(products).where(eq(products.id, id));
+      // Every edit — including an options-only one — moves the product to the
+      // top of the admin list.
+      const [found] = await tx
+        .update(products)
+        .set({ ...changes, updatedAt: new Date() })
+        .where(eq(products.id, id))
+        .returning({ id: products.id });
       if (!found) throw new ApiError("Product not found.", 404);
       if (input.variants !== undefined) await syncVariants(tx, id, input.variants);
     });
@@ -48,13 +46,13 @@ export async function DELETE(_request: Request, { params }: Params) {
   try {
     await requireUser("admin");
     const { id } = await params;
-    // Soft delete: mark unavailable (order history references products).
-    const [updated] = await db
-      .update(products)
-      .set({ isAvailable: false })
+    // Permanent: options cascade, and order lines keep their name/price
+    // snapshots with the product reference cleared.
+    const [deleted] = await db
+      .delete(products)
       .where(eq(products.id, id))
-      .returning();
-    if (!updated) throw new ApiError("Product not found.", 404);
+      .returning({ id: products.id });
+    if (!deleted) throw new ApiError("Product not found.", 404);
     return ok({ deleted: true });
   } catch (err) {
     return handleApiError(err);

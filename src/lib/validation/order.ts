@@ -1,10 +1,21 @@
 import { z } from "zod";
 import { phoneSchema } from "./common";
 
+export const geoPointSchema = z.object({
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  /** Accuracy radius in metres, as reported by the Geolocation API. */
+  accuracy: z.number().min(0).max(100_000).optional(),
+});
+
+export type GeoPoint = z.infer<typeof geoPointSchema>;
+
 export const checkoutSchema = z.object({
   customerName: z.string().trim().min(2, "Name is required").max(80),
   phone: phoneSchema,
   addressDetails: z.string().trim().min(5, "Enter your full address").max(500),
+  /** Device location pinned at checkout; optional so the address alone still works. */
+  location: geoPointSchema.nullable().optional(),
   note: z.string().trim().max(500).optional(),
   couponCode: z.string().trim().max(40).optional(),
   items: z

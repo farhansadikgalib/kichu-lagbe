@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PushToggle } from "@/components/pwa/push-toggle";
 import { useNotifications } from "@/hooks/use-notifications";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate } from "@/lib/api/fetcher";
@@ -37,7 +38,12 @@ export function NotificationsMenu() {
   return (
     <DropdownMenu onOpenChange={(open) => open && markAllRead()}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative"
+          aria-label="Notifications"
+        >
           <Bell />
           {unread > 0 && (
             <span className="absolute -top-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
@@ -71,7 +77,11 @@ export function NotificationsMenu() {
                 </div>
               );
               return n.href ? (
-                <Link key={n.id} href={n.href} className="block hover:bg-accent">
+                <Link
+                  key={n.id}
+                  href={n.href}
+                  className="block hover:bg-accent"
+                >
                   {content}
                 </Link>
               ) : (
@@ -80,6 +90,8 @@ export function NotificationsMenu() {
             })}
           </div>
         )}
+        <DropdownMenuSeparator />
+        <PushToggle className="px-3 py-2" />
       </DropdownMenuContent>
     </DropdownMenu>
   );

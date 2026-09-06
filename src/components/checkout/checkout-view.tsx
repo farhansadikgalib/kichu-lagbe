@@ -16,6 +16,8 @@ import { PhoneInput } from "@/components/ui/phone-input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCartHydrated } from "@/components/cart/use-cart-hydrated";
 import { CouponField } from "@/components/checkout/coupon-field";
+import { LocationField } from "@/components/checkout/location-field";
+import { useGeolocation } from "@/hooks/use-geolocation";
 import { useDeliveryCharge } from "@/hooks/use-catalog";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, FetchError, swrFetcher } from "@/lib/api/fetcher";
@@ -100,6 +102,9 @@ export function CheckoutView() {
   const phone =
     phoneInput ?? (profile?.phone ? normalizePhone(profile.phone) : "");
   const [address, setAddress] = useState("");
+  // Ask for the device location as soon as checkout opens; it's optional, so
+  // a "no" just leaves the address field to do the job.
+  const location = useGeolocation({ auto: true });
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
   const [showCoupon, setShowCoupon] = useState(false);
@@ -126,6 +131,7 @@ export function CheckoutView() {
       customerName: name,
       phone,
       addressDetails: address,
+      location: location.point,
       note: note.trim() || undefined,
       couponCode: coupon?.code,
       items: items.map((i) => ({
@@ -266,6 +272,12 @@ export function CheckoutView() {
                 {errors.addressDetails}
               </FieldError>
             </div>
+            <LocationField
+              status={location.status}
+              point={location.point}
+              onLocate={location.locate}
+              onClear={location.clear}
+            />
             {showNote ? (
               <div className="space-y-1.5">
                 <Label htmlFor="checkout-note">Note for the rider</Label>

@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
@@ -5,6 +6,7 @@ import { orders, users } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth/guards";
 import { ApiError, handleApiError, ok } from "@/lib/api/response";
 import { notify } from "@/lib/notify";
+import { createOrderEvent, publishOrderEvent } from "@/lib/events/order-events";
 import { ORDER_STATUS_LABELS } from "@/lib/constants";
 import { formatOrderNumber } from "@/lib/format";
 
@@ -18,7 +20,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await requireUser("admin");
+    const session = await requireUser("admin");
     const { id } = await params;
     const input = updateSchema.parse(await request.json());
 
@@ -60,6 +62,8 @@ export async function PATCH(
         "/rider",
       );
     }
+
+    after(() => publishOrderEvent(createOrderEvent("order.updated", session.sub, updated)));
 
     return ok(updated);
   } catch (err) {

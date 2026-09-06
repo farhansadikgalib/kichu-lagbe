@@ -17,7 +17,10 @@ import { OrderItemsTable } from "@/components/orders/order-items-table";
 import { OrderStatusBadge } from "@/components/orders/order-status-badge";
 import { OrderTimeline } from "@/components/orders/order-timeline";
 import { PriceSummary } from "@/components/orders/price-summary";
+import { NotificationPermissionButton } from "@/components/pwa/notification-permission-button";
+import { useNotificationPrompt } from "@/hooks/use-notification-permission";
 import { useOrder } from "@/hooks/use-orders";
+import { isClosedStatus } from "@/lib/order-status";
 import { FetchError } from "@/lib/api/fetcher";
 import { PAYMENT_METHODS } from "@/lib/constants";
 import { formatDate, formatOrderNumber } from "@/lib/format";
@@ -38,6 +41,7 @@ function initialsOf(name: string) {
 /** Order tracking page: live status timeline, items, price breakdown, and rider info. */
 export function OrderDetail({ id }: OrderDetailProps) {
   const { data: order, error, isLoading, mutate } = useOrder(id);
+  useNotificationPrompt("this order", Boolean(order && !isClosedStatus(order.status)));
 
   if (isLoading) {
     return (
@@ -120,6 +124,14 @@ export function OrderDetail({ id }: OrderDetailProps) {
         <Card>
           <CardContent>
             <OrderTimeline status={order.status} />
+            {!isClosedStatus(order.status) && (
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+                <p className="text-sm text-muted-foreground">
+                  This page updates live. Want a heads-up when you&apos;re on another tab?
+                </p>
+                <NotificationPermissionButton subject="this order" />
+              </div>
+            )}
           </CardContent>
         </Card>
       </Reveal>

@@ -38,7 +38,7 @@ import { formatBDT, formatDate, formatOrderNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { AdminStats, StatsRange } from "@/types";
 
-const RECENT_COUNT = 8;
+const RECENT_COUNT = 5;
 const RANGES: { value: StatsRange; label: string }[] = [
   { value: "7d", label: "7 days" },
   { value: "30d", label: "30 days" },

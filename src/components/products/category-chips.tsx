@@ -39,9 +39,11 @@ export function CategoryChips({ active, className }: CategoryChipsProps) {
                     : "border-border/70 bg-card/60 text-muted-foreground hover:border-border hover:bg-card hover:text-foreground",
                 )}
               >
-                <span aria-hidden className="text-base leading-none">
-                  {tab.emoji}
-                </span>
+                {tab.emoji && (
+                  <span aria-hidden className="text-base leading-none">
+                    {tab.emoji}
+                  </span>
+                )}
                 {tab.label}
               </Link>
             </li>

@@ -15,6 +15,8 @@ import {
   TicketPercent,
   Users,
 } from "lucide-react";
+import { LiveOrderAlerts } from "@/components/admin/live-orders";
+import { NotificationsMenu } from "@/components/layout/notifications-menu";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -153,12 +155,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
             {current?.label ?? "Console"}
           </p>
 
-          <Button asChild variant="outline" size="sm" className="ml-auto">
-            <Link href="/">
-              <Store data-icon="inline-start" aria-hidden />
-              Back to store
-            </Link>
-          </Button>
+          <div className="ml-auto flex items-center gap-1">
+            <LiveOrderAlerts />
+            <NotificationsMenu />
+            <Button asChild variant="outline" size="sm" className="ml-1">
+              <Link href="/">
+                <Store data-icon="inline-start" aria-hidden />
+                Back to store
+              </Link>
+            </Button>
+          </div>
         </header>
 
         <main className="flex-1 p-4 md:p-6">

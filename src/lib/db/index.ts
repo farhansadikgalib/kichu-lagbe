@@ -34,4 +34,7 @@ if (process.env.NODE_ENV !== "production") {
 
 export const db = drizzle(pool, { schema });
 
+/** The raw pool — for long-lived connections drizzle can't model (LISTEN/NOTIFY). */
+export { pool };
+
 export * as dbSchema from "./schema";

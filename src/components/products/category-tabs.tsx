@@ -7,7 +7,7 @@ export const CATALOG_TABS = [
     slug: "all",
     label: "All",
     title: "All products",
-    emoji: "✨",
+    emoji: "",
     blurb:
       "Everything on the shelf tonight — snacks, smokes, and the essentials.",
     image: null,
