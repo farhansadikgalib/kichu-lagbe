@@ -940,7 +940,7 @@ export function buildOpenApiSpec(audience?: Audience) {
           type: "apiKey",
           in: "cookie",
           name: "dl_session",
-          description: "HttpOnly JWT session cookie set by the login/register routes (7 days).",
+          description: "HttpOnly JWT session cookie set by the login/register routes (400 days — the browser-enforced maximum).",
         },
       },
       schemas,

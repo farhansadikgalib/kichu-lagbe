@@ -1,15 +1,24 @@
 import { getSession } from "@/lib/auth/session";
+import { resolveLiveSession } from "@/lib/auth/guards";
 import { handleApiError, ok } from "@/lib/api/response";
 
 export async function GET() {
   try {
     const session = await getSession();
     if (!session) return ok(null);
+
+    // Re-check the live account, not just the JWT — with a long-lived
+    // session cookie, a deactivated or role-changed account must stop
+    // looking signed-in immediately, not whenever it next hits a guarded
+    // route/page.
+    const live = await resolveLiveSession(session);
+    if (!live) return ok(null);
+
     return ok({
-      id: session.sub,
-      name: session.name,
-      email: session.email,
-      role: session.role,
+      id: live.sub,
+      name: live.name,
+      email: live.email,
+      role: live.role,
     });
   } catch (err) {
     return handleApiError(err);

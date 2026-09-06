@@ -9,9 +9,12 @@ import type { UserRole } from "@/types";
 
 /**
  * Loads the live account for a session, so deactivation and role changes
- * take effect immediately instead of when the 7-day JWT expires.
+ * take effect immediately instead of when the (long-lived) JWT expires.
+ * Also used by `GET /api/auth/session` — not just the route/page guards —
+ * so a disabled account stops looking signed-in right away, not up to
+ * `SESSION_DAYS` later.
  */
-async function resolveLiveSession(session: SessionPayload): Promise<SessionPayload | null> {
+export async function resolveLiveSession(session: SessionPayload): Promise<SessionPayload | null> {
   const user = await db.query.users.findFirst({
     where: eq(users.id, session.sub),
     columns: { role: true, isActive: true },

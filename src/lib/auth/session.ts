@@ -4,7 +4,16 @@ import { jwtVerify, SignJWT } from "jose";
 import type { UserRole } from "@/types";
 
 const COOKIE_NAME = "dl_session";
-const SESSION_DAYS = 7;
+/**
+ * As close to "forever" as a cookie can get: 400 days is the hard ceiling
+ * Chrome (and, since, Safari/Firefox) enforce on Set-Cookie Max-Age/Expires —
+ * anything longer is silently clamped down to it, so there is no point
+ * asking for more. Staying signed in past this needs an actual re-login;
+ * a deactivated account or role change is caught much sooner regardless,
+ * since every guarded request re-checks the live user row (see
+ * `resolveLiveSession` in `@/lib/auth/guards`), not just the JWT.
+ */
+const SESSION_DAYS = 400;
 
 export interface SessionPayload {
   /** User id (uuid). */
