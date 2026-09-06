@@ -36,14 +36,15 @@ export async function requireUser(...roles: UserRole[]): Promise<SessionPayload>
 }
 
 /**
- * Server-component guard. Redirects to login (or home on role mismatch).
+ * Server-component guard for staff pages (admin/rider). Redirects to the
+ * console login (or home on role mismatch) — never the customer `/login`.
  */
 export async function requirePageUser(...roles: UserRole[]): Promise<SessionPayload> {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) redirect("/console");
 
   const live = await resolveLiveSession(session);
-  if (!live) redirect("/login");
+  if (!live) redirect("/console");
   if (roles.length > 0 && !roles.includes(live.role)) redirect("/");
   return live;
 }

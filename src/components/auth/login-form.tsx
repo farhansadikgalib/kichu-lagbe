@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCard } from "@/components/auth/auth-card";
-import { AuthDivider } from "@/components/auth/auth-divider";
 import { GoogleButton } from "@/components/auth/google-button";
 import { PasswordInput } from "@/components/auth/password-input";
 import { TurnstileWidget } from "@/components/auth/turnstile-widget";
@@ -22,11 +21,18 @@ import type { SessionUser } from "@/types";
 
 /** Email/password login form. Redirects to `next` when given, otherwise to the role's home. */
 interface LoginFormProps {
+  /**
+   * "customer" (default): Google only — the fast path for the storefront.
+   * "console": email/password only, no Google — for staff (admin/rider) and
+   * anyone else signing in with a password. Same `/api/auth/login` either way.
+   */
+  mode?: "customer" | "console";
   /** Forwarded to the card: show the seeded demo accounts (localhost only). */
   showDemoHint?: boolean;
 }
 
-export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
+export function LoginForm({ mode = "customer", showDemoHint }: LoginFormProps = {}) {
+  const isConsole = mode === "console";
   const router = useRouter();
   const searchParams = useSearchParams();
   const { mutate } = useSession();
@@ -89,21 +95,37 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
     }
   }
 
+  const consoleHref = nextParam ? `/console?next=${encodeURIComponent(nextParam)}` : "/console";
+  const customerLoginHref = nextParam ? `/login?next=${encodeURIComponent(nextParam)}` : "/login";
+
   return (
     <AuthCard
       showDemoHint={showDemoHint}
-      title="Welcome back"
-      description="Log in to order late-night essentials."
+      title={isConsole ? "Console login" : "Welcome back"}
+      description={
+        isConsole
+          ? "Sign in to manage orders, deliveries, and the catalog."
+          : "Log in to order late-night essentials."
+      }
       footer={
-        <p>
-          Don&apos;t have an account?{" "}
-          <Link
-            href={registerHref}
-            className="font-medium text-primary hover:underline"
-          >
-            Create one
-          </Link>
-        </p>
+        isConsole ? (
+          <p>
+            Looking to order?{" "}
+            <Link href={customerLoginHref} className="font-medium text-primary hover:underline">
+              Customer login
+            </Link>
+          </p>
+        ) : (
+          <p>
+            Don&apos;t have an account?{" "}
+            <Link
+              href={registerHref}
+              className="font-medium text-primary hover:underline"
+            >
+              Create one
+            </Link>
+          </p>
+        )
       }
     >
       {oauthErrorMessage && (
@@ -114,67 +136,68 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
           {oauthErrorMessage}
         </p>
       )}
-      <GoogleButton next={nextParam ?? undefined} />
-      <AuthDivider />
-      <form onSubmit={handleSubmit} noValidate className="space-y-5">
-        <fieldset disabled={submitting} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="login-email">Email</Label>
-            <Input
-              id="login-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              autoComplete="email"
-              aria-invalid={errors.email ? true : undefined}
-              aria-describedby={errors.email ? "login-email-error" : undefined}
-            />
-            {errors.email && (
-              <p
-                id="login-email-error"
-                role="alert"
-                className="text-xs text-destructive"
-              >
-                {errors.email}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="login-password">Password</Label>
-            <PasswordInput
-              id="login-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              aria-invalid={errors.password ? true : undefined}
-              aria-describedby={
-                errors.password ? "login-password-error" : undefined
-              }
-            />
-            {errors.password && (
-              <p
-                id="login-password-error"
-                role="alert"
-                className="text-xs text-destructive"
-              >
-                {errors.password}
-              </p>
-            )}
-          </div>
-          <TurnstileWidget key={turnstileRun} onToken={setTurnstileToken} />
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full"
-            disabled={submitting}
-            aria-busy={submitting}
-          >
-            {submitting && <Loader2 className="animate-spin" aria-hidden />}
-            {submitting ? "Logging in…" : "Log in"}
-          </Button>
-        </fieldset>
-      </form>
+      {isConsole ? null : (
+        <>
+          <GoogleButton next={nextParam ?? undefined} />
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Staff or have a password?{" "}
+            <Link href={consoleHref} className="font-medium text-foreground hover:underline">
+              Sign in at the console
+            </Link>
+          </p>
+        </>
+      )}
+      {isConsole && (
+        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+          <fieldset disabled={submitting} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="login-email">Email</Label>
+              <Input
+                id="login-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+                aria-invalid={errors.email ? true : undefined}
+                aria-describedby={errors.email ? "login-email-error" : undefined}
+              />
+              {errors.email && (
+                <p id="login-email-error" role="alert" className="text-xs text-destructive">
+                  {errors.email}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="login-password">Password</Label>
+              <PasswordInput
+                id="login-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                aria-invalid={errors.password ? true : undefined}
+                aria-describedby={errors.password ? "login-password-error" : undefined}
+              />
+              {errors.password && (
+                <p id="login-password-error" role="alert" className="text-xs text-destructive">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+            <TurnstileWidget key={turnstileRun} onToken={setTurnstileToken} />
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full"
+              disabled={submitting}
+              aria-busy={submitting}
+            >
+              {submitting && <Loader2 className="animate-spin" aria-hidden />}
+              {submitting ? "Logging in…" : "Log in"}
+            </Button>
+          </fieldset>
+        </form>
+      )}
     </AuthCard>
   );
 }
