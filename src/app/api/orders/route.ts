@@ -1,6 +1,6 @@
-import { desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { coupons, orderItems, orders, products } from "@/lib/db/schema";
+import { coupons, orderItems, orders, products, productVariants } from "@/lib/db/schema";
 import { getDeliveryCharge } from "@/lib/db/queries/settings";
 import { requireUser } from "@/lib/auth/guards";
 import { couponDiscount } from "@/lib/pricing";
@@ -24,6 +24,8 @@ export async function GET() {
   }
 }
 
+const UNAVAILABLE = "One of the items in your cart is no longer available.";
+
 /** Place an order. Prices are always recomputed server-side. */
 export async function POST(request: Request) {
   try {
@@ -35,23 +37,42 @@ export async function POST(request: Request) {
     const deliveryCharge = await getDeliveryCharge();
 
     const productIds = input.items.map((i) => i.productId);
-    const dbProducts = await db.query.products.findMany({
-      where: inArray(products.id, productIds),
-    });
+    const variantIds = input.items.flatMap((i) => (i.variantId ? [i.variantId] : []));
+    const [dbProducts, dbVariants] = await Promise.all([
+      db.query.products.findMany({ where: inArray(products.id, productIds) }),
+      variantIds.length
+        ? db.query.productVariants.findMany({
+            where: and(
+              inArray(productVariants.id, variantIds),
+              inArray(productVariants.productId, productIds),
+            ),
+          })
+        : Promise.resolve([]),
+    ]);
     const productById = new Map(dbProducts.map((p) => [p.id, p]));
+    const variantById = new Map(dbVariants.map((v) => [v.id, v]));
 
     let subtotal = 0;
     const itemRows = input.items.map((item) => {
       const product = productById.get(item.productId);
-      if (!product || !product.isAvailable) {
-        throw new ApiError("One of the items in your cart is no longer available.", 422);
+      if (!product || !product.isAvailable) throw new ApiError(UNAVAILABLE, 422);
+
+      // An option must belong to this product and still be on sale; the
+      // price is the option's, never the base price the client may have sent.
+      const variant = item.variantId ? variantById.get(item.variantId) : null;
+      if (item.variantId && (!variant || variant.productId !== product.id || !variant.isAvailable)) {
+        throw new ApiError(UNAVAILABLE, 422);
       }
-      const lineTotal = product.price * item.quantity;
+
+      const unitPrice = variant ? variant.price : product.price;
+      const lineTotal = unitPrice * item.quantity;
       subtotal += lineTotal;
       return {
         productId: product.id,
+        variantId: variant?.id ?? null,
         productName: product.name,
-        unitPrice: product.price,
+        variantName: variant?.name ?? null,
+        unitPrice,
         quantity: item.quantity,
         lineTotal,
       };

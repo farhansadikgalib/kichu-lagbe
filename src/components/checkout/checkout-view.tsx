@@ -20,7 +20,8 @@ import { useDeliveryCharge } from "@/hooks/use-catalog";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, FetchError, swrFetcher } from "@/lib/api/fetcher";
 import { SERVICE } from "@/lib/constants";
-import { formatBDT, formatOrderNumber } from "@/lib/format";
+import { formatBDT, formatLineName, formatOrderNumber } from "@/lib/format";
+import { isExternalImage } from "@/lib/media/url";
 import { normalizePhone } from "@/lib/validation/common";
 import { checkoutSchema } from "@/lib/validation/order";
 import { cn } from "@/lib/utils";
@@ -129,6 +130,7 @@ export function CheckoutView() {
       couponCode: coupon?.code,
       items: items.map((i) => ({
         productId: i.productId,
+        variantId: i.variantId,
         quantity: i.quantity,
       })),
     });
@@ -308,7 +310,7 @@ export function CheckoutView() {
               <ul className="mt-2 space-y-1.5">
                 {items.map((item) => (
                   <li
-                    key={item.productId}
+                    key={item.key}
                     className="flex items-center gap-2.5 text-sm"
                   >
                     <div className="relative size-7 shrink-0 overflow-hidden rounded-md bg-muted">
@@ -319,7 +321,7 @@ export function CheckoutView() {
                           fill
                           sizes="28px"
                           className="object-cover"
-                          unoptimized={item.imageUrl.startsWith("http")}
+                          unoptimized={isExternalImage(item.imageUrl)}
                         />
                       ) : (
                         <span className="flex size-full items-center justify-center text-muted-foreground">
@@ -328,7 +330,7 @@ export function CheckoutView() {
                       )}
                     </div>
                     <p className="min-w-0 flex-1 truncate">
-                      {item.name}
+                      {formatLineName(item)}
                       <span className="text-muted-foreground tabular-nums">
                         {" "}
                         × {item.quantity}

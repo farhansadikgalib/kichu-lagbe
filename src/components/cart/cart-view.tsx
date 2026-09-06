@@ -12,7 +12,7 @@ import { CartLineItem } from "@/components/cart/cart-line-item";
 import { useCartHydrated } from "@/components/cart/use-cart-hydrated";
 import { useSession } from "@/hooks/use-session";
 import { SERVICE } from "@/lib/constants";
-import { formatBDT } from "@/lib/format";
+import { formatBDT, formatLineName } from "@/lib/format";
 import { DURATION, EASE_MOTION } from "@/lib/motion/tokens";
 import {
   selectCartCount,
@@ -52,12 +52,12 @@ export function CartView() {
   }
 
   function restore(snapshot: CartItem[]) {
-    snapshot.forEach(({ quantity, ...item }) => addItem(item, quantity));
+    snapshot.forEach((item) => addItem(item, item.quantity));
   }
 
   function handleRemove(item: CartItem) {
-    removeItem(item.productId);
-    toast(`${item.name} removed`, {
+    removeItem(item.key);
+    toast(`${formatLineName(item)} removed`, {
       action: { label: "Undo", onClick: () => restore([item]) },
     });
   }
@@ -127,10 +127,10 @@ export function CartView() {
               <AnimatePresence initial={false}>
                 {items.map((item) => (
                   <CartLineItem
-                    key={item.productId}
+                    key={item.key}
                     item={item}
                     onQuantityChange={(quantity) =>
-                      setQuantity(item.productId, quantity)
+                      setQuantity(item.key, quantity)
                     }
                     onRemove={() => handleRemove(item)}
                   />

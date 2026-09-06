@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { ImageOff } from "lucide-react";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { formatBDT } from "@/lib/format";
+import { isExternalImage } from "@/lib/media/url";
 import { DURATION, EASE_MOTION } from "@/lib/motion/tokens";
 import type { CartItem } from "@/stores/cart-store";
 
@@ -39,8 +40,7 @@ export function CartLineItem({
             // A bag is short and above the fold; lazy thumbnails just flash in late.
             loading="eager"
             className="object-cover"
-            // External URLs aren't in images.remotePatterns — bypass the optimizer.
-            unoptimized={item.imageUrl.startsWith("http")}
+            unoptimized={isExternalImage(item.imageUrl)}
           />
         ) : (
           <span className="flex size-full items-center justify-center text-muted-foreground">
@@ -50,7 +50,12 @@ export function CartLineItem({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{item.name}</p>
+        <p className="truncate text-sm font-medium">
+          {item.name}
+          {item.variantName && (
+            <span className="font-normal text-muted-foreground"> · {item.variantName}</span>
+          )}
+        </p>
         <p className="mt-0.5 text-xs tabular-nums">
           <span className="font-semibold">
             {formatBDT(item.price * item.quantity)}
