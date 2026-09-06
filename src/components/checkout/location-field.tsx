@@ -14,16 +14,18 @@ interface LocationFieldProps {
 }
 
 const PROBLEMS: Partial<Record<GeolocationStatus, string>> = {
+  insecure:
+    "Location only works over HTTPS. Open the site at its https:// address to pin your location.",
   denied:
     "Location access is blocked for this site. Allow it in your browser's site settings, or just rely on the address above.",
-  timeout: "Couldn't get a fix in time. Try again near a window, or rely on the address above.",
-  unavailable: "Your device couldn't determine a location right now. The address above is enough.",
+  timeout: "Couldn't get a fix in time. Try again near a window or with Wi-Fi on, or rely on the address above.",
+  unavailable:
+    "Your device couldn't determine a location. Turn on location services and Wi-Fi, then try again — or rely on the address above.",
 };
 
 /**
- * Optional GPS pin for the delivery address. Asks for location permission on
- * tap (never on page load), then shows what was captured so the customer can
- * check it on a map or drop it.
+ * Optional GPS pin for the delivery address. Shows what was captured so the
+ * customer can check it on a map or drop it, and explains why a tap failed.
  */
 export function LocationField({ status, point, onLocate, onClear }: LocationFieldProps) {
   if (status === "unsupported") return null;
@@ -66,7 +68,7 @@ export function LocationField({ status, point, onLocate, onClear }: LocationFiel
         variant="outline"
         size="sm"
         onClick={onLocate}
-        disabled={locating || status === "denied"}
+        disabled={locating || status === "denied" || status === "insecure"}
         aria-describedby={problem ? "checkout-location-help" : undefined}
       >
         {locating ? (
