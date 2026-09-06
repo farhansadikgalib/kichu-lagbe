@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
+  // Native module used by the media upload pipeline — must not be bundled.
+  serverExternalPackages: ["sharp"],
   images: {
     formats: ["image/avif", "image/webp"],
   },

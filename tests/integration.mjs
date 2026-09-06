@@ -358,7 +358,12 @@ await section("Profile", async () => {
 
 await section("Admin CRUD", async () => {
   let r = await admin.get("/api/admin/stats");
-  check("stats shape", r.status === 200 && typeof r.json.data.totalRevenue === "number");
+  check(
+    "stats shape",
+    r.status === 200 &&
+      typeof r.json.data.lifetime?.revenue === "number" &&
+      Array.isArray(r.json.data.series),
+  );
 
   r = await admin.post("/api/admin/products", {
     name: `IT Product ${stamp}`,
@@ -394,11 +399,16 @@ await section("Admin CRUD", async () => {
   r = await admin.call("DELETE", `/api/admin/coupons/${couponId}`);
   check("delete coupon", r.status === 200);
 
+  // Users are paginated: { items, total, page, pageSize }.
   r = await admin.get("/api/admin/users?role=rider");
-  check("users filter by role", r.status === 200 && r.json.data.every((u) => u.role === "rider"));
+  const riderUsers = r.json?.data?.items ?? [];
+  check(
+    "users filter by role",
+    r.status === 200 && riderUsers.length > 0 && riderUsers.every((u) => u.role === "rider"),
+  );
   check(
     "admin user list does NOT leak passwordHash",
-    (r.json?.data ?? []).every((u) => !("passwordHash" in u)),
+    riderUsers.every((u) => !("passwordHash" in u)),
   );
 });
 

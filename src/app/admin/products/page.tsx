@@ -478,7 +478,7 @@ export default function AdminProductsPage() {
               hint={
                 isExternalImage(form.imageUrl)
                   ? "External images are shown as-is, without optimisation."
-                  : "JPEG, PNG or WebP up to 4MB. Square images look best."
+                  : "JPEG, PNG, WebP or GIF up to 4MB. Uploads are cropped to a square (800×800) and saved as WebP."
               }
             />
             <FormSection title="Availability" />

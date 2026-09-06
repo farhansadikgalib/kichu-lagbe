@@ -58,6 +58,8 @@ export function ImageUploadField({
     try {
       const form = new FormData();
       form.append("file", file);
+      // The server resizes to this shape and converts to WebP.
+      form.append("fit", aspect);
       const asset = await apiUpload<MediaAsset>("/api/admin/media", form);
       onChange(asset.url);
       toast.success("Image uploaded.");

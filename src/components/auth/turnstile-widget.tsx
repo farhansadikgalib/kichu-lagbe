@@ -59,8 +59,12 @@ interface TurnstileWidgetProps {
  */
 export function TurnstileWidget({ onToken }: TurnstileWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // Latest callback without re-rendering the widget; synced in an effect
+  // because refs must not be written during render.
   const onTokenRef = useRef(onToken);
-  onTokenRef.current = onToken;
+  useEffect(() => {
+    onTokenRef.current = onToken;
+  }, [onToken]);
 
   useEffect(() => {
     if (!SITE_KEY) return;
