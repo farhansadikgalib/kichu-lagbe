@@ -43,3 +43,11 @@ export async function apiMutate<T>(
   const body = (await res.json()) as { data: T };
   return body.data;
 }
+
+/** Multipart upload helper (files) — same envelope and error handling as `apiMutate`. */
+export async function apiUpload<T>(url: string, form: FormData): Promise<T> {
+  const res = await fetch(url, { method: "POST", body: form });
+  if (!res.ok) await parseError(res);
+  const body = (await res.json()) as { data: T };
+  return body.data;
+}

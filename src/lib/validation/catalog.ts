@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+/** Upper bound on options per product — keeps the picker and the form sane. */
+export const MAX_VARIANTS = 20;
+
+export const productVariantSchema = z.object({
+  /** Present when editing an existing option so its id (and carts holding it) survive. */
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1, "Option name is required").max(60),
+  price: z.number().int().min(1, "Price must be at least ৳1"),
+  isAvailable: z.boolean().optional(),
+});
+
 export const productSchema = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z
@@ -9,9 +20,12 @@ export const productSchema = z.object({
     .max(140),
   categoryId: z.number().int().positive(),
   description: z.string().trim().max(1000).optional().or(z.literal("")),
+  /** Base price; the "from" price once variants exist. */
   price: z.number().int().min(1, "Price must be at least ৳1"),
   imageUrl: z.string().trim().max(500).optional().or(z.literal("")),
   isAvailable: z.boolean().optional(),
+  /** Full replacement list — omitted on PATCH leaves variants untouched. */
+  variants: z.array(productVariantSchema).max(MAX_VARIANTS).optional(),
 });
 
 const couponBaseSchema = z.object({
@@ -49,5 +63,6 @@ export const deliverySettingsSchema = z.object({
 });
 
 export type ProductInput = z.infer<typeof productSchema>;
+export type ProductVariantInput = z.infer<typeof productVariantSchema>;
 export type CouponInput = z.infer<typeof couponSchema>;
 export type DeliverySettingsInput = z.infer<typeof deliverySettingsSchema>;

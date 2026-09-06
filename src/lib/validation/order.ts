@@ -11,6 +11,8 @@ export const checkoutSchema = z.object({
     .array(
       z.object({
         productId: z.string().uuid(),
+        /** Chosen option; null/omitted buys the product at its base price. */
+        variantId: z.string().uuid().nullable().optional(),
         quantity: z.number().int().min(1).max(50),
       }),
     )

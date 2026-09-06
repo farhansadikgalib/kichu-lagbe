@@ -1,4 +1,4 @@
-import type { Coupon } from "@/types";
+import type { Coupon, ProductVariant } from "@/types";
 
 /**
  * Coupon discount for a given subtotal (BDT). Returns 0 when the coupon
@@ -12,4 +12,13 @@ export function couponDiscount(coupon: Coupon, subtotal: number): number {
   const discount =
     coupon.type === "fixed" ? coupon.value : Math.floor((subtotal * coupon.value) / 100);
   return Math.min(discount, subtotal);
+}
+
+/** Lowest purchasable price — the base price, or the cheapest option on sale. */
+export function startingPrice(product: {
+  price: number;
+  variants: Pick<ProductVariant, "price" | "isAvailable">[];
+}) {
+  const onSale = product.variants.filter((v) => v.isAvailable);
+  return onSale.length ? Math.min(...onSale.map((v) => v.price)) : product.price;
 }

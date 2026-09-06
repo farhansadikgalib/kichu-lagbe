@@ -2,10 +2,12 @@ import type { InferSelectModel } from "drizzle-orm";
 import type {
   categories,
   coupons,
+  media,
   notifications,
   orderItems,
   orders,
   products,
+  productVariants,
   users,
 } from "@/lib/db/schema";
 
@@ -18,6 +20,7 @@ export type CouponType = "fixed" | "percent";
 export type User = Omit<InferSelectModel<typeof users>, "passwordHash">;
 export type Category = InferSelectModel<typeof categories>;
 export type Product = InferSelectModel<typeof products>;
+export type ProductVariant = InferSelectModel<typeof productVariants>;
 /** Flat delivery settings — one charge for the whole coverage area. */
 export interface DeliverySettings {
   charge: number;
@@ -26,8 +29,14 @@ export type Coupon = InferSelectModel<typeof coupons>;
 export type Order = InferSelectModel<typeof orders>;
 export type OrderItem = InferSelectModel<typeof orderItems>;
 export type AppNotification = InferSelectModel<typeof notifications>;
+/** Uploaded file metadata — the bytes themselves never leave the media route. */
+export type MediaAsset = Omit<InferSelectModel<typeof media>, "data"> & { url: string };
 
-export type ProductWithCategory = Product & { category: Category };
+export type ProductWithCategory = Product & {
+  category: Category;
+  /** Purchasable options in display order; empty when sold at the base price. */
+  variants: ProductVariant[];
+};
 
 export type OrderWithItems = Order & {
   items: OrderItem[];
@@ -52,11 +61,100 @@ export interface SessionUser {
   role: UserRole;
 }
 
+/* -------------------------------- Pagination ------------------------------- */
+
+export interface PageInfo {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface Paginated<T> {
+  items: T[];
+  pageInfo: PageInfo;
+}
+
+/** Orders board page: rows plus per-status totals for the active search / date window. */
+export type AdminOrdersPage = Paginated<AdminOrder> & {
+  counts: Record<OrderStatus, number>;
+};
+
+/* ------------------------------ Admin reports ----------------------------- */
+
+/** Reporting window for the admin dashboard, ending today (Asia/Dhaka). */
+export type StatsRange = "7d" | "30d" | "90d";
+
+/** One day of the dashboard time series. `date` is YYYY-MM-DD in Asia/Dhaka. */
+export interface StatsPoint {
+  date: string;
+  /** Delivered order value that day (BDT). */
+  revenue: number;
+  /** Orders placed that day, any status. */
+  orders: number;
+}
+
+/** Totals for one reporting window; `previous` on AdminStats is the window before it. */
+export interface StatsPeriod {
+  /** Delivered order value (BDT). */
+  revenue: number;
+  /** Orders placed, any status. */
+  orders: number;
+  delivered: number;
+  cancelled: number;
+  /** revenue / delivered, 0 when nothing was delivered. */
+  avgOrderValue: number;
+  newCustomers: number;
+}
+
 export interface AdminStats {
-  totalOrders: number;
-  pendingOrders: number;
-  deliveredOrders: number;
-  totalRevenue: number;
-  totalCustomers: number;
-  totalProducts: number;
+  range: StatsRange;
+  days: number;
+  lifetime: {
+    orders: number;
+    pendingOrders: number;
+    deliveredOrders: number;
+    revenue: number;
+    customers: number;
+    products: number;
+  };
+  period: StatsPeriod;
+  previous: StatsPeriod;
+  /** One point per day of the window, oldest first, zero-filled. */
+  series: StatsPoint[];
+  /** Orders placed in the window, in status flow order (every status present). */
+  byStatus: { status: OrderStatus; count: number; total: number }[];
+  /** Non-cancelled orders placed in the window by hour of day (24 entries, Asia/Dhaka). */
+  byHour: number[];
+  /** Best-selling products in the window (non-cancelled orders), by value. */
+  topProducts: { name: string; quantity: number; revenue: number }[];
+  /** Best-selling categories in the window (non-cancelled orders), by value. */
+  topCategories: { name: string; quantity: number; revenue: number }[];
+  /** Non-cancelled orders placed in the window by weekday (7 entries, Sunday first). */
+  byWeekday: number[];
+  /** What delivered revenue in the window is made of. */
+  breakdown: {
+    subtotal: number;
+    deliveryCharges: number;
+    discounts: number;
+    total: number;
+    /** Delivered orders that used a coupon. */
+    couponOrders: number;
+  };
+  /** Delivery timing for orders delivered in the window that have a delivered-at stamp. */
+  delivery: {
+    avgMinutes: number | null;
+    /** Deliveries with a timing stamp. */
+    timed: number;
+    /** Of those, delivered within the promised window. */
+    onTime: number;
+  };
+  /** Customers who ordered in the window, and how many had ordered before it. */
+  customers: { active: number; returning: number };
+  /** Biggest spenders in the window (non-cancelled orders). */
+  topCustomers: { name: string; orders: number; spend: number }[];
+  /** Deliveries completed per rider in the window. */
+  riders: { name: string; delivered: number; avgMinutes: number | null }[];
+  /** Coupons used on non-cancelled orders in the window, by discount given. */
+  coupons: { code: string; uses: number; discount: number }[];
 }

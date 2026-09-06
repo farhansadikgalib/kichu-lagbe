@@ -1,18 +1,26 @@
 "use client";
 
 import Image from "next/image";
-import { Minus, Plus } from "lucide-react";
+import { useState } from "react";
+import { ChevronDown, Minus, Plus } from "lucide-react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import { toast } from "sonner";
 import { useCartHydrated } from "@/components/cart/use-cart-hydrated";
 import { formatBDT } from "@/lib/format";
+import { isExternalImage } from "@/lib/media/url";
 import { DURATION, EASE_MOTION, REVEAL } from "@/lib/motion/tokens";
+import { startingPrice } from "@/lib/pricing";
 import { cn } from "@/lib/utils";
-import { useCartStore } from "@/stores/cart-store";
+import {
+  cartLineKey,
+  MAX_CART_QTY,
+  selectProductQuantity,
+  useCartStore,
+} from "@/stores/cart-store";
 import type { ProductWithCategory } from "@/types";
+import { VariantPicker } from "./variant-picker";
 
 const FALLBACK_IMAGE = "/images/products/placeholder.svg";
-const MAX_QTY = 50;
 
 interface ProductCardProps {
   product: ProductWithCategory;
@@ -30,17 +38,22 @@ const swap = {
 const controlBase =
   "flex size-9 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-150 outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50 active:scale-95 disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4";
 
+const primaryControl =
+  "bg-primary text-primary-foreground shadow-[0_6px_18px_-6px] shadow-primary/60 hover:bg-primary/90";
+
 /**
  * Catalog tile. The action row is an "Add" control until the product is in the
  * cart, then becomes an inline − / + stepper so quantity is adjusted in place.
+ * Products with options open a picker instead, and the badge counts every option.
  */
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const hydrated = useCartHydrated();
-  const quantity = useCartStore(
-    (s) => s.items.find((i) => i.productId === product.id)?.quantity ?? 0,
-  );
+  const hasVariants = product.variants.length > 0;
+  const lineKey = cartLineKey(product.id);
+  const quantity = useCartStore(selectProductQuantity(product.id));
   const addItem = useCartStore((s) => s.addItem);
   const setQuantity = useCartStore((s) => s.setQuantity);
+  const [pickerOpen, setPickerOpen] = useState(false);
   // The cart lives in localStorage — treat it as empty until hydrated so the
   // server and client HTML match.
   const inCart = hydrated ? quantity : 0;
@@ -81,8 +94,7 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-            // External URLs aren't in images.remotePatterns — bypass the optimizer.
-            unoptimized={(product.imageUrl ?? "").startsWith("http")}
+            unoptimized={isExternalImage(product.imageUrl ?? "")}
           />
           {/* Soft base so the tile reads as one surface with the text below */}
           <div
@@ -114,69 +126,84 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
 
           <div className="mt-auto flex items-center justify-between gap-2">
             <p className="font-heading text-base font-bold text-primary tabular-nums">
-              {formatBDT(product.price)}
+              {hasVariants && (
+                <span className="mr-1 text-[11px] font-medium text-muted-foreground">from</span>
+              )}
+              {formatBDT(startingPrice(product))}
             </p>
 
-            <AnimatePresence mode="wait" initial={false}>
-              {inCart > 0 ? (
-                <motion.div
-                  key="stepper"
-                  {...swap}
-                  role="group"
-                  aria-label={`Quantity for ${product.name}`}
-                  className="flex items-center rounded-full bg-primary/12 p-0.5 ring-1 ring-primary/25"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setQuantity(product.id, inCart - 1)}
-                    aria-label={
-                      inCart === 1 ? "Remove from cart" : "Decrease quantity"
-                    }
-                    className={cn(
-                      controlBase,
-                      "size-8 text-primary hover:bg-primary/15",
-                    )}
+            {hasVariants ? (
+              <button
+                type="button"
+                onClick={() => setPickerOpen(true)}
+                aria-haspopup="dialog"
+                aria-label={`Choose an option for ${product.name}`}
+                className={cn(
+                  controlBase,
+                  "w-auto gap-1 px-3 text-sm font-semibold",
+                  inCart > 0
+                    ? "bg-primary/12 text-primary ring-1 ring-primary/25 hover:bg-primary/15"
+                    : primaryControl,
+                )}
+              >
+                {inCart > 0 ? `${inCart} in bag` : "Options"}
+                <ChevronDown aria-hidden />
+              </button>
+            ) : (
+              <AnimatePresence mode="wait" initial={false}>
+                {inCart > 0 ? (
+                  <motion.div
+                    key="stepper"
+                    {...swap}
+                    role="group"
+                    aria-label={`Quantity for ${product.name}`}
+                    className="flex items-center rounded-full bg-primary/12 p-0.5 ring-1 ring-primary/25"
                   >
-                    <Minus aria-hidden />
-                  </button>
-                  <span
-                    aria-live="polite"
-                    className="w-7 text-center text-sm font-semibold text-primary tabular-nums"
-                  >
-                    {inCart}
-                  </span>
-                  <button
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(lineKey, inCart - 1)}
+                      aria-label={inCart === 1 ? "Remove from cart" : "Decrease quantity"}
+                      className={cn(controlBase, "size-8 text-primary hover:bg-primary/15")}
+                    >
+                      <Minus aria-hidden />
+                    </button>
+                    <span
+                      aria-live="polite"
+                      className="w-7 text-center text-sm font-semibold text-primary tabular-nums"
+                    >
+                      {inCart}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setQuantity(lineKey, inCart + 1)}
+                      disabled={inCart >= MAX_CART_QTY}
+                      aria-label="Increase quantity"
+                      className={cn(controlBase, "size-8 text-primary hover:bg-primary/15")}
+                    >
+                      <Plus aria-hidden />
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key="add"
+                    {...swap}
                     type="button"
-                    onClick={() => setQuantity(product.id, inCart + 1)}
-                    disabled={inCart >= MAX_QTY}
-                    aria-label="Increase quantity"
-                    className={cn(
-                      controlBase,
-                      "size-8 text-primary hover:bg-primary/15",
-                    )}
+                    onClick={handleAdd}
+                    aria-label={`Add ${product.name} to cart`}
+                    className={cn(controlBase, primaryControl)}
                   >
                     <Plus aria-hidden />
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.button
-                  key="add"
-                  {...swap}
-                  type="button"
-                  onClick={handleAdd}
-                  aria-label={`Add ${product.name} to cart`}
-                  className={cn(
-                    controlBase,
-                    "bg-primary text-primary-foreground shadow-[0_6px_18px_-6px] shadow-primary/60 hover:bg-primary/90",
-                  )}
-                >
-                  <Plus aria-hidden />
-                </motion.button>
-              )}
-            </AnimatePresence>
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            )}
           </div>
         </div>
       </motion.article>
+
+      {hasVariants && (
+        <VariantPicker product={product} open={pickerOpen} onOpenChange={setPickerOpen} />
+      )}
     </MotionConfig>
   );
 }

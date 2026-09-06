@@ -1,5 +1,7 @@
 import {
   boolean,
+  customType,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -10,6 +12,11 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+
+/** Raw binary column — Drizzle has no built-in bytea. */
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType: () => "bytea",
+});
 
 /* ---------------------------------- Enums --------------------------------- */
 
@@ -77,6 +84,41 @@ export const products = pgTable(
   (t) => [uniqueIndex("products_slug_idx").on(t.slug)],
 );
 
+/**
+ * Purchasable options of a product (size, pack, flavour…) each with its own
+ * price. A product with no variants is sold at its base price.
+ */
+export const productVariants = pgTable(
+  "product_variants",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    productId: uuid("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    /** Price in BDT (whole taka). */
+    price: integer("price").notNull(),
+    isAvailable: boolean("is_available").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+  },
+  (t) => [index("product_variants_product_idx").on(t.productId)],
+);
+
+/* ---------------------------------- Media --------------------------------- */
+
+/**
+ * Admin-uploaded images (products, home page sections). Stored in Postgres so
+ * uploads need no extra infrastructure; served through /api/media/[id].
+ */
+export const media = pgTable("media", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  filename: text("filename").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(),
+  data: bytea("data").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /* --------------------------------- Coupons -------------------------------- */
 
 export const coupons = pgTable(
@@ -125,8 +167,12 @@ export const orderItems = pgTable("order_items", {
     .notNull()
     .references(() => orders.id, { onDelete: "cascade" }),
   productId: uuid("product_id").references(() => products.id),
+  variantId: uuid("variant_id").references(() => productVariants.id, {
+    onDelete: "set null",
+  }),
   /** Snapshots so history survives catalog edits. */
   productName: text("product_name").notNull(),
+  variantName: text("variant_name"),
   unitPrice: integer("unit_price").notNull(),
   quantity: integer("quantity").notNull(),
   lineTotal: integer("line_total").notNull(),
@@ -165,10 +211,18 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
   products: many(products),
 }));
 
-export const productsRelations = relations(products, ({ one }) => ({
+export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, {
     fields: [products.categoryId],
     references: [categories.id],
+  }),
+  variants: many(productVariants),
+}));
+
+export const productVariantsRelations = relations(productVariants, ({ one }) => ({
+  product: one(products, {
+    fields: [productVariants.productId],
+    references: [products.id],
   }),
 }));
 
