@@ -68,12 +68,18 @@ export async function publishOrderEvent(event: OrderEvent) {
   void dispatchOrderWebhook(event);
 }
 
-/** Listen for events from this and every other instance. Returns an unsubscribe. */
+/**
+ * Listen for events from this and every other instance. Returns an
+ * unsubscribe. The LISTEN connection exists only while someone is
+ * subscribed: when the last SSE stream closes it is released, so an idle
+ * instance holds none of the database's connection budget.
+ */
 export function subscribeOrderEvents(listener: (event: OrderEvent) => void) {
   bus.on("event", listener);
   void ensureListener();
   return () => {
     bus.off("event", listener);
+    if (bus.listenerCount("event") === 0) void releaseListener();
   };
 }
 
@@ -115,6 +121,9 @@ function ensureListener() {
       globalThis.__dhOrderListener = null;
       client.release(err);
     });
+    // Pooled connections are reaped server-side after a minute idle (see
+    // lib/db); a LISTEN session is idle by nature, so exempt this one.
+    await client.query("set idle_session_timeout = 0");
     await client.query(`listen ${CHANNEL}`);
     return client;
   })();
@@ -125,4 +134,20 @@ function ensureListener() {
     globalThis.__dhOrderListener = null;
   });
   return listener;
+}
+
+/** Give the LISTEN connection back once nobody is subscribed. */
+async function releaseListener() {
+  const pending = globalThis.__dhOrderListener;
+  if (!pending) return;
+  globalThis.__dhOrderListener = null;
+  try {
+    const client = await pending;
+    // A subscriber may have arrived while we awaited; they've re-ensured a
+    // listener of their own by now, so this one can still go.
+    await client.query(`unlisten ${CHANNEL}`).catch(() => undefined);
+    client.release();
+  } catch {
+    /* connect failed — nothing to release */
+  }
 }
