@@ -2,51 +2,22 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import {
-  Banknote,
-  Clock,
-  MapPin,
-  PackageCheck,
-  Search,
-  ShoppingBag,
-} from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { Reveal } from "@/components/motion";
 import { Button } from "@/components/ui/button";
-import { SERVICE } from "@/lib/constants";
+import { HomeIcon } from "@/lib/home/icons";
+import type { SectionContent } from "@/lib/home/schema";
 import { gsap, useGSAP } from "@/lib/motion/gsap";
 import { SectionHeading } from "./section-heading";
 
-const STEPS = [
-  {
-    icon: Search,
-    title: "Browse",
-    description:
-      "Pick from snacks, cigarettes, and daily essentials — all in one place.",
-  },
-  {
-    icon: ShoppingBag,
-    title: "Order",
-    description: "Add to cart and check out in seconds with cash on delivery.",
-  },
-  {
-    icon: MapPin,
-    title: "Track",
-    description: "Follow your order from confirmation to pickup in real time.",
-  },
-  {
-    icon: PackageCheck,
-    title: "Delivered",
-    description: `At your door in ~${SERVICE.avgDeliveryMinutes} minutes on average.`,
-  },
-] as const;
+interface HowItWorksProps {
+  content: SectionContent<"howItWorks">;
+  headingId: string;
+}
 
-const FACTS = [
-  { icon: Clock, label: `~${SERVICE.avgDeliveryMinutes} min average` },
-  { icon: Banknote, label: "Cash on delivery" },
-] as const;
-
-export function HowItWorks() {
+export function HowItWorks({ content, headingId }: HowItWorksProps) {
   const ref = useRef<HTMLElement>(null);
+  const stepCount = content.steps.length;
 
   // Scrubbed walkthrough: each step's dot lights up, then its connector
   // segment draws down to the next step. Reduced-motion users see the static
@@ -80,50 +51,54 @@ export function HowItWorks() {
         });
       });
     },
-    { scope: ref },
+    { scope: ref, dependencies: [stepCount] },
   );
 
   return (
     <section
       ref={ref}
-      aria-labelledby="how-it-works-heading"
+      aria-labelledby={headingId}
       className="border-y border-border/60 bg-sidebar/60"
     >
       <div className="container-page grid gap-12 py-16 md:py-24 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-20">
         <Reveal className="lg:sticky lg:top-28 lg:self-start">
           <SectionHeading
-            id="how-it-works-heading"
-            eyebrow="How it works"
-            title="Craving to doorstep in four taps"
-            description="No calls, no forms, no fuss. This is the whole process."
+            id={headingId}
+            eyebrow={content.eyebrow}
+            title={content.title}
+            description={content.description}
           />
-          <ul className="mt-6 flex flex-wrap gap-2" aria-label="Service facts">
-            {FACTS.map((fact) => (
-              <li
-                key={fact.label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3.5 py-1.5 text-sm text-muted-foreground"
-              >
-                <fact.icon className="size-3.5 text-primary" aria-hidden />
-                {fact.label}
-              </li>
-            ))}
-          </ul>
-          <Button asChild size="lg" className="mt-8">
-            <Link href="/category/all">
-              <ShoppingBag aria-hidden /> Start an order
-            </Link>
-          </Button>
+          {content.facts.length > 0 && (
+            <ul className="mt-6 flex flex-wrap gap-2" aria-label="Service facts">
+              {content.facts.map((fact, index) => (
+                <li
+                  key={`${fact.label}-${index}`}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3.5 py-1.5 text-sm text-muted-foreground"
+                >
+                  <HomeIcon name={fact.icon} className="size-3.5 text-primary" />
+                  {fact.label}
+                </li>
+              ))}
+            </ul>
+          )}
+          {content.ctaLabel && (
+            <Button asChild size="lg" className="mt-8">
+              <Link href={content.ctaHref}>
+                <ShoppingBag aria-hidden /> {content.ctaLabel}
+              </Link>
+            </Button>
+          )}
         </Reveal>
 
         <ol className="relative">
-          {STEPS.map((step, index) => (
+          {content.steps.map((step, index) => (
             <Reveal
               as="li"
-              key={step.title}
+              key={`${step.title}-${index}`}
               delay={index * 0.08}
               className="relative pl-20"
             >
-              {index < STEPS.length - 1 && (
+              {index < stepCount - 1 && (
                 <span
                   aria-hidden
                   className="absolute top-14 bottom-0 left-7 w-px bg-border/80"
@@ -138,7 +113,7 @@ export function HowItWorks() {
                 aria-hidden
                 className="absolute top-0 left-0 flex size-14 items-center justify-center rounded-full bg-card ring-1 ring-border"
               >
-                <step.icon className="size-6 text-primary" />
+                <HomeIcon name={step.icon} className="size-6 text-primary" />
                 <span
                   data-step-glow
                   className="absolute inset-0 rounded-full bg-primary/10 opacity-0 ring-2 ring-primary/60"
@@ -150,7 +125,7 @@ export function HowItWorks() {
               >
                 0{index + 1}
               </span>
-              <div className={index < STEPS.length - 1 ? "pb-12" : ""}>
+              <div className={index < stepCount - 1 ? "pb-12" : ""}>
                 <p className="pt-1 font-mono text-xs font-semibold tracking-widest text-primary uppercase">
                   Step 0{index + 1}
                 </p>
@@ -158,9 +133,9 @@ export function HowItWorks() {
                   <span className="sr-only">Step {index + 1}: </span>
                   {step.title}
                 </h3>
-                <p className="mt-1.5 max-w-md text-muted-foreground">
-                  {step.description}
-                </p>
+                {step.description && (
+                  <p className="mt-1.5 max-w-md text-muted-foreground">{step.description}</p>
+                )}
               </div>
             </Reveal>
           ))}

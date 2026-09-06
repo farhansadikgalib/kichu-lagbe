@@ -2,58 +2,52 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/motion";
+import type { SectionContent } from "@/lib/home/schema";
+import { isExternalImage } from "@/lib/media/url";
 import { SectionHeading } from "./section-heading";
 
-const SHOWCASE = [
-  {
-    slug: "snacks",
-    name: "Snacks",
-    emoji: "🍔",
-    image: "/images/categories/fdtest.jpg",
-    description: "Quick bites & midnight cravings",
-  },
-  {
-    slug: "cigarettes",
-    name: "Cigarettes",
-    emoji: "🚬",
-    image: "/images/categories/cig.jpg",
-    description: "All major brands, delivered fast",
-  },
-  {
-    slug: "daily",
-    name: "Daily Products",
-    emoji: "🧃",
-    image: "/images/categories/daily.jpg",
-    description: "Milk, eggs, bread & everyday essentials",
-  },
-] as const;
+interface CategoryShowcaseProps {
+  content: SectionContent<"categories">;
+  /** Unique per section instance so several showcases can share a page. */
+  headingId: string;
+}
 
-export function CategoryShowcase() {
+export function CategoryShowcase({ content, headingId }: CategoryShowcaseProps) {
   return (
-    <section aria-labelledby="categories-heading" className="container-page py-16 md:py-24">
+    <section aria-labelledby={headingId} className="container-page py-16 md:py-24">
       <Reveal>
         <SectionHeading
-          id="categories-heading"
-          eyebrow="The lineup"
-          title="What's the vibe tonight?"
-          description="Pick a lane — we're already putting our shoes on."
+          id={headingId}
+          eyebrow={content.eyebrow}
+          title={content.title}
+          description={content.description}
         />
       </Reveal>
 
       <Reveal stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {SHOWCASE.map((category) => (
+        {content.items.map((category, index) => (
           <Link
-            key={category.slug}
-            href={`/category/${category.slug}`}
+            key={`${category.href}-${index}`}
+            href={category.href}
             className="group relative block aspect-[4/3] overflow-hidden rounded-xl ring-1 ring-foreground/10 outline-none transition-shadow duration-200 focus-visible:ring-3 focus-visible:ring-ring/50 hover:shadow-xl hover:shadow-primary/10"
           >
-            <Image
-              src={category.image}
-              alt={category.name}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-            />
+            {category.image ? (
+              <Image
+                src={category.image}
+                alt={category.name}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                unoptimized={isExternalImage(category.image)}
+              />
+            ) : (
+              <div
+                aria-hidden
+                className="absolute inset-0 flex items-center justify-center bg-linear-to-br from-primary/30 via-card to-card text-7xl transition-transform duration-500 ease-out group-hover:scale-105"
+              >
+                {category.emoji}
+              </div>
+            )}
             <div
               aria-hidden
               className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent"
@@ -63,17 +57,21 @@ export function CategoryShowcase() {
               aria-hidden
               className="absolute inset-0 -translate-x-full overflow-hidden bg-linear-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full motion-reduce:hidden"
             />
-            <span
-              aria-hidden
-              className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full border border-white/15 bg-black/40 text-lg backdrop-blur-md transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
-            >
-              {category.emoji}
-            </span>
+            {category.emoji && (
+              <span
+                aria-hidden
+                className="absolute top-4 right-4 flex size-10 items-center justify-center rounded-full border border-white/15 bg-black/40 text-lg backdrop-blur-md transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6"
+              >
+                {category.emoji}
+              </span>
+            )}
             <div className="absolute inset-x-0 bottom-0 p-5">
               <h3 className="font-heading text-xl font-bold tracking-tight text-white">
                 {category.name}
               </h3>
-              <p className="mt-0.5 text-sm text-white/75">{category.description}</p>
+              {category.description && (
+                <p className="mt-0.5 text-sm text-white/75">{category.description}</p>
+              )}
               <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary">
                 Shop now
                 <ArrowRight

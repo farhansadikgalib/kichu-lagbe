@@ -6,17 +6,12 @@ import { ChevronDown, Clock, MapPin, ShoppingBag } from "lucide-react";
 import { Parallax } from "@/components/motion";
 import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { Button } from "@/components/ui/button";
-import { BRAND, isServiceOpen, SERVICE } from "@/lib/constants";
+import { isServiceOpen, SERVICE } from "@/lib/constants";
+import type { SectionContent } from "@/lib/home/schema";
 import { gsap, useGSAP } from "@/lib/motion/gsap";
 import { REVEAL } from "@/lib/motion/tokens";
 
 const subscribeNever = () => () => {};
-
-const CRAVE_CHIPS = [
-  { emoji: "🍔", label: "Snacks", href: "/category/snacks" },
-  { emoji: "🚬", label: "Smokes", href: "/category/cigarettes" },
-  { emoji: "🧃", label: "Essentials", href: "/category/daily" },
-] as const;
 
 // The entrance is plain CSS so it starts at first paint instead of waiting for
 // hydration — a JS-driven entrance would hide the already-visible server HTML
@@ -28,8 +23,12 @@ const entranceDelay = (index: number) => ({
 });
 const ORB_ENTRANCE = { animationDuration: "1.2s" };
 
+interface HeroProps {
+  content: SectionContent<"hero">;
+}
+
 /** Cinematic home hero: CSS entrance + parallax night-glow orbs + scroll scrub. */
-export function Hero() {
+export function Hero({ content }: HeroProps) {
   const ref = useRef<HTMLElement>(null);
   // Time-dependent, so resolved client-side only to avoid a hydration mismatch.
   const open = useSyncExternalStore(
@@ -87,39 +86,41 @@ export function Hero() {
         data-hero-content
         className="container-page relative flex flex-col items-center gap-6 py-24 text-center md:py-36"
       >
-        <p
-          className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-medium text-foreground/90 sm:text-sm`}
-          style={entranceDelay(0)}
-        >
-          {open !== null && (
-            <>
-              <span className="inline-flex items-center gap-1.5">
-                <span
-                  className={`size-2 rounded-full ${
-                    open
-                      ? "bg-emerald-400 motion-safe:animate-pulse"
-                      : "bg-muted-foreground/60"
-                  }`}
-                />
-                {open ? "Open now" : "Closed right now"}
-              </span>
-              <span className="hidden text-primary/50 sm:inline" aria-hidden>
-                ·
-              </span>
-            </>
-          )}
-          <span className="inline-flex items-center gap-1.5">
-            <Clock className="size-3.5 text-primary" aria-hidden />
-            {SERVICE.window}
-          </span>
-          <span className="hidden text-primary/50 sm:inline" aria-hidden>
-            ·
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <MapPin className="size-3.5 text-primary" aria-hidden />
-            {SERVICE.area}
-          </span>
-        </p>
+        {content.showStatusBadge && (
+          <p
+            className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-xs font-medium text-foreground/90 sm:text-sm`}
+            style={entranceDelay(0)}
+          >
+            {open !== null && (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <span
+                    className={`size-2 rounded-full ${
+                      open
+                        ? "bg-emerald-400 motion-safe:animate-pulse"
+                        : "bg-muted-foreground/60"
+                    }`}
+                  />
+                  {open ? "Open now" : "Closed right now"}
+                </span>
+                <span className="hidden text-primary/50 sm:inline" aria-hidden>
+                  ·
+                </span>
+              </>
+            )}
+            <span className="inline-flex items-center gap-1.5">
+              <Clock className="size-3.5 text-primary" aria-hidden />
+              {SERVICE.window}
+            </span>
+            <span className="hidden text-primary/50 sm:inline" aria-hidden>
+              ·
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="size-3.5 text-primary" aria-hidden />
+              {SERVICE.area}
+            </span>
+          </p>
+        )}
 
         {/* Largest contentful paint: rises into place but is never faded from 0. */}
         <h1
@@ -127,55 +128,66 @@ export function Hero() {
           className="max-w-3xl text-[2.75rem] leading-[1.05] font-bold text-balance motion-safe:animate-rise sm:text-6xl md:text-7xl"
           style={entranceDelay(1)}
         >
-          Midnight cravings?{" "}
-          <span className="bg-linear-to-r from-primary via-amber-200 to-yellow-300 bg-clip-text text-transparent">
-            Say less.
-          </span>
+          {content.title}
+          {content.titleAccent && (
+            <>
+              {" "}
+              <span className="bg-linear-to-r from-primary via-amber-200 to-yellow-300 bg-clip-text text-transparent">
+                {content.titleAccent}
+              </span>
+            </>
+          )}
         </h1>
 
-        <p
-          className={`${ENTRANCE_ITEM} max-w-xl text-balance text-muted-foreground sm:text-lg`}
-          style={entranceDelay(2)}
-        >
-          {BRAND.tagline} — {BRAND.description.charAt(0).toLowerCase() + BRAND.description.slice(1)}
-        </p>
+        {content.subtitle && (
+          <p
+            className={`${ENTRANCE_ITEM} max-w-xl text-balance text-muted-foreground sm:text-lg`}
+            style={entranceDelay(2)}
+          >
+            {content.subtitle}
+          </p>
+        )}
 
         <div
           className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-3`}
           style={entranceDelay(3)}
         >
           <Button asChild size="lg">
-            <Link href="/category/all">
-              <ShoppingBag aria-hidden /> Start an order
+            <Link href={content.ctaHref}>
+              <ShoppingBag aria-hidden /> {content.ctaLabel}
             </Link>
           </Button>
-          <InstallAppButton variant="outline" />
+          {content.showInstallButton && <InstallAppButton variant="outline" />}
         </div>
 
-        <ul
-          className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-2`}
-          style={entranceDelay(4)}
-          aria-label="Quick categories"
-        >
-          {CRAVE_CHIPS.map((chip) => (
-            <li key={chip.href}>
-              <Link
-                href={chip.href}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-foreground"
-              >
-                <span aria-hidden>{chip.emoji}</span>
-                {chip.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {content.chips.length > 0 && (
+          <ul
+            className={`${ENTRANCE_ITEM} flex flex-wrap items-center justify-center gap-2`}
+            style={entranceDelay(4)}
+            aria-label="Quick categories"
+          >
+            {content.chips.map((chip, index) => (
+              <li key={`${chip.href}-${index}`}>
+                <Link
+                  href={chip.href}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/60 px-3.5 py-1.5 text-sm font-medium text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/10 hover:text-foreground"
+                >
+                  {chip.emoji && <span aria-hidden>{chip.emoji}</span>}
+                  {chip.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
 
-        <p
-          className={`${ENTRANCE_ITEM} text-xs text-muted-foreground`}
-          style={entranceDelay(5)}
-        >
-          At your door in ~{SERVICE.avgDeliveryMinutes} min. No minimum, no drama.
-        </p>
+        {content.footnote && (
+          <p
+            className={`${ENTRANCE_ITEM} text-xs text-muted-foreground`}
+            style={entranceDelay(5)}
+          >
+            {content.footnote}
+          </p>
+        )}
 
         <div aria-hidden className={`${ENTRANCE_ITEM} pt-4`} style={entranceDelay(6)}>
           <ChevronDown className="size-5 text-muted-foreground/70 motion-safe:animate-bounce" />
