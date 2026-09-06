@@ -13,6 +13,7 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { GoogleButton } from "@/components/auth/google-button";
 import { PasswordInput } from "@/components/auth/password-input";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, FetchError } from "@/lib/api/fetcher";
 import { registerSchema } from "@/lib/validation/auth";
@@ -42,6 +43,9 @@ export function RegisterForm({ showDemoHint }: RegisterFormProps = {}) {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // Bumped after a failed submit — remounts the widget for a fresh token.
+  const [turnstileRun, setTurnstileRun] = useState(0);
 
   const nextParam = searchParams.get("next");
   const nextPath =
@@ -68,7 +72,7 @@ export function RegisterForm({ showDemoHint }: RegisterFormProps = {}) {
     setSubmitting(true);
     try {
       const user = await apiMutate<SessionUser>("/api/auth/register", {
-        body: parsed.data,
+        body: { ...parsed.data, turnstileToken: turnstileToken ?? undefined },
       });
       // The response already is the session: seed the cache and navigate.
       await mutate(user, { revalidate: false });
@@ -80,6 +84,8 @@ export function RegisterForm({ showDemoHint }: RegisterFormProps = {}) {
           ? err.message
           : "Registration failed. Please try again.",
       );
+      setTurnstileToken(null);
+      setTurnstileRun((run) => run + 1);
       setSubmitting(false);
     }
   }
@@ -191,6 +197,7 @@ export function RegisterForm({ showDemoHint }: RegisterFormProps = {}) {
             </p>
           )}
         </div>
+        <TurnstileWidget key={turnstileRun} onToken={setTurnstileToken} />
         <Button
           type="submit"
           size="lg"

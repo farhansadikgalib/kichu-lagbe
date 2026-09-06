@@ -13,6 +13,7 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { GoogleButton } from "@/components/auth/google-button";
 import { PasswordInput } from "@/components/auth/password-input";
+import { TurnstileWidget } from "@/components/auth/turnstile-widget";
 import { useSession } from "@/hooks/use-session";
 import { apiMutate, FetchError } from "@/lib/api/fetcher";
 import { postLoginPath, safeNextPath } from "@/lib/auth/redirect";
@@ -36,6 +37,9 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
     {},
   );
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  // Bumped after a failed submit — remounts the widget for a fresh token.
+  const [turnstileRun, setTurnstileRun] = useState(0);
 
   const nextParam = safeNextPath(searchParams.get("next"));
   const registerHref = nextParam
@@ -65,7 +69,7 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
     setSubmitting(true);
     try {
       const user = await apiMutate<SessionUser>("/api/auth/login", {
-        body: parsed.data,
+        body: { ...parsed.data, turnstileToken: turnstileToken ?? undefined },
       });
       // The response already is the session: seed the cache instead of
       // refetching, and go straight to the destination. Staff land in their
@@ -79,6 +83,8 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
           ? err.message
           : "Login failed. Please try again.",
       );
+      setTurnstileToken(null);
+      setTurnstileRun((run) => run + 1);
       setSubmitting(false);
     }
   }
@@ -156,6 +162,7 @@ export function LoginForm({ showDemoHint }: LoginFormProps = {}) {
               </p>
             )}
           </div>
+          <TurnstileWidget key={turnstileRun} onToken={setTurnstileToken} />
           <Button
             type="submit"
             size="lg"

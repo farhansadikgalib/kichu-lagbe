@@ -4,11 +4,13 @@ import { users } from "@/lib/db/schema";
 import { verifyPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
 import { loginSchema } from "@/lib/validation/auth";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { ApiError, handleApiError, ok } from "@/lib/api/response";
 
 export async function POST(request: Request) {
   try {
     const input = loginSchema.parse(await request.json());
+    await verifyTurnstile(input.turnstileToken, request);
 
     const user = await db.query.users.findFirst({ where: eq(users.email, input.email) });
     if (!user || !(await verifyPassword(input.password, user.passwordHash))) {
