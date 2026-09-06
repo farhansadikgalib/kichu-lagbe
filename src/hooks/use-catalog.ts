@@ -2,7 +2,7 @@
 
 import useSWR from "swr";
 import { swrFetcher } from "@/lib/api/fetcher";
-import type { Category, DeliverySettings, ProductWithCategory } from "@/types";
+import type { AvailableCoupon, Category, DeliverySettings, ProductWithCategory } from "@/types";
 
 export function useProducts(
   categorySlug?: string,
@@ -44,4 +44,11 @@ export function useCategories() {
 /** Flat delivery charge applied to every order. */
 export function useDeliveryCharge() {
   return useSWR<DeliverySettings>("/api/delivery", swrFetcher);
+}
+
+/** Coupons the signed-in customer can use right now (active, not expired). */
+export function useAvailableCoupons(enabled = true) {
+  return useSWR<AvailableCoupon[]>(enabled ? "/api/coupons" : null, swrFetcher, {
+    revalidateOnFocus: false,
+  });
 }

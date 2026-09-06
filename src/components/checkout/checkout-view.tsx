@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { ChevronDown, ImageOff, Plus, Ticket } from "lucide-react";
+import { ChevronDown, ImageOff, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import { apiMutate, FetchError, swrFetcher } from "@/lib/api/fetcher";
 import { SERVICE } from "@/lib/constants";
 import { formatBDT, formatLineName, formatOrderNumber } from "@/lib/format";
 import { isExternalImage } from "@/lib/media/url";
-import { normalizePhone } from "@/lib/validation/common";
+import { normalizePhone, phoneSchema } from "@/lib/validation/common";
 import { checkoutSchema } from "@/lib/validation/order";
 import { cn } from "@/lib/utils";
 import {
@@ -79,11 +79,12 @@ function RevealButton({
 export function CheckoutView() {
   const router = useRouter();
   const { user } = useSession();
-  // Saved profile phone pre-fills the field; the session user only carries a name.
-  const { data: profile } = useSWR<User>(
-    user ? "/api/auth/profile" : null,
-    swrFetcher,
-  );
+  // The account's saved phone; the session user only carries a name.
+  const {
+    data: profile,
+    error: profileError,
+    isLoading: profileLoading,
+  } = useSWR<User>(user ? "/api/auth/profile" : null, swrFetcher);
   const {
     data: delivery,
     error: deliveryError,
@@ -99,8 +100,19 @@ export function CheckoutView() {
   const [nameInput, setNameInput] = useState<string | null>(null);
   const [phoneInput, setPhoneInput] = useState<string | null>(null);
   const name = nameInput ?? user?.name ?? "";
-  const phone =
-    phoneInput ?? (profile?.phone ? normalizePhone(profile.phone) : "");
+  // A saved number is only trusted when it passes the same 11-digit rule the
+  // order goes through; anything else falls back to the input so it gets fixed.
+  const savedPhone =
+    profile?.phone && phoneSchema.safeParse(profile.phone).success
+      ? normalizePhone(profile.phone)
+      : null;
+  const phone = phoneInput ?? savedPhone ?? "";
+  // Once a valid number is on the account the field stays hidden: the number
+  // is shown as text with a "Change" link. Placing the order saves whatever
+  // number was used back to the account, so a first-time entry is remembered.
+  const [editingPhone, setEditingPhone] = useState(false);
+  const phoneLoading = !!user && profileLoading && !profileError;
+  const showPhoneInput = editingPhone || !savedPhone;
   // Ask for the device location as soon as checkout opens; it's optional, so
   // a "no" just leaves the address field to do the job.
   const location = useGeolocation({ auto: true });
@@ -117,7 +129,6 @@ export function CheckoutView() {
   const address = addressInput ?? geocoded?.address ?? "";
   const [note, setNote] = useState("");
   const [showNote, setShowNote] = useState(false);
-  const [showCoupon, setShowCoupon] = useState(false);
   const [coupon, setCoupon] = useState<CouponValidationResult | null>(null);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -159,6 +170,7 @@ export function CheckoutView() {
         note: fe.note?.[0],
       });
       if (fe.note) setShowNote(true);
+      if (fe.phone) setEditingPhone(true);
       toast.error("Please fix the highlighted fields");
       return;
     }
@@ -245,19 +257,55 @@ export function CheckoutView() {
                 </FieldError>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="checkout-phone">Phone</Label>
-                <PhoneInput
-                  id="checkout-phone"
-                  value={phone}
-                  onValueChange={setPhoneInput}
-                  aria-invalid={errors.phone ? true : undefined}
-                  aria-describedby={
-                    errors.phone ? "checkout-phone-error" : undefined
-                  }
-                />
-                <FieldError id="checkout-phone-error">
-                  {errors.phone}
-                </FieldError>
+                <Label htmlFor={showPhoneInput ? "checkout-phone" : undefined}>
+                  Phone
+                </Label>
+                {phoneLoading ? (
+                  <Skeleton className="h-8 w-full" />
+                ) : showPhoneInput ? (
+                  <>
+                    <PhoneInput
+                      id="checkout-phone"
+                      value={phone}
+                      autoFocus={editingPhone}
+                      onValueChange={setPhoneInput}
+                      aria-invalid={errors.phone ? true : undefined}
+                      aria-describedby={
+                        errors.phone ? "checkout-phone-error" : undefined
+                      }
+                    />
+                    <FieldError id="checkout-phone-error">
+                      {errors.phone}
+                    </FieldError>
+                    {savedPhone ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPhoneInput(null);
+                          setEditingPhone(false);
+                        }}
+                        className="text-xs font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+                      >
+                        Use saved number
+                      </button>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Saved to your account for next time.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex h-8 items-center justify-between gap-2 rounded-lg border border-input bg-muted/30 px-2.5 text-sm">
+                    <span className="tabular-nums">{savedPhone}</span>
+                    <button
+                      type="button"
+                      onClick={() => setEditingPhone(true)}
+                      className="text-xs font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+                    >
+                      Change
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             <div className="space-y-1.5">
@@ -375,18 +423,12 @@ export function CheckoutView() {
 
           {/* Coupon and totals */}
           <div className="space-y-3 border-t border-border/70 p-4 sm:p-5">
-            {showCoupon || coupon ? (
-              <CouponField
-                subtotal={subtotal}
-                applied={coupon}
-                onApply={setCoupon}
-                onRemove={() => setCoupon(null)}
-              />
-            ) : (
-              <RevealButton icon={Ticket} onClick={() => setShowCoupon(true)}>
-                Have a coupon?
-              </RevealButton>
-            )}
+            <CouponField
+              subtotal={subtotal}
+              applied={coupon}
+              onApply={setCoupon}
+              onRemove={() => setCoupon(null)}
+            />
 
             <dl className="space-y-1.5 text-sm">
               <div className="flex items-center justify-between gap-4">

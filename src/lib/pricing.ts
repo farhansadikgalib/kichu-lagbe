@@ -14,6 +14,11 @@ export function couponDiscount(coupon: Coupon, subtotal: number): number {
   return Math.min(discount, subtotal);
 }
 
+/** Short customer-facing label for what a coupon gives: "৳50 off" or "10% off". */
+export function describeCoupon(coupon: Pick<Coupon, "type" | "value">): string {
+  return coupon.type === "fixed" ? `৳${coupon.value} off` : `${coupon.value}% off`;
+}
+
 /** Lowest purchasable price — the base price, or the cheapest option on sale. */
 export function startingPrice(product: {
   price: number;

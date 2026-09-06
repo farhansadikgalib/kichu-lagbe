@@ -179,6 +179,16 @@ const schemas: Record<string, Schema> = {
     },
     ["id", "code", "type", "value", "minOrder", "isActive", "createdAt"],
   ),
+  AvailableCoupon: obj(
+    {
+      code: str({ example: "WELCOME10" }),
+      type: str({ enum: ["fixed", "percent"] }),
+      value: int({ description: "Fixed: BDT amount. Percent: 0–100." }),
+      minOrder: { ...bdt, description: "Subtotal the cart must reach before the coupon applies." },
+      expiresAt: nullable(dateTime),
+    },
+    ["code", "type", "value", "minOrder"],
+  ),
   CouponValidation: obj(
     {
       code: str(),
@@ -480,6 +490,16 @@ const paths: Record<string, Schema> = {
         200: { description: "The image.", content: { "image/webp": { schema: str({ format: "binary" }) } } },
         404: E[404],
       },
+    },
+  },
+  "/api/coupons": {
+    get: {
+      tags: ["Catalog"],
+      summary: "Coupons available right now",
+      description:
+        "Active, unexpired coupons, cheapest minimum order first — the checkout picker. Whether one applies to a given cart is still decided by `POST /api/coupons/validate` and again when the order is placed.",
+      security: session,
+      responses: { 200: dataResponse(array(ref("AvailableCoupon"))), 401: E[401] },
     },
   },
   "/api/coupons/validate": {
@@ -812,6 +832,7 @@ const AUDIENCE: Record<string, Audience[]> = {
   "GET /api/categories": ["customer"],
   "GET /api/delivery": ["customer"],
   "GET /api/media/{id}": ["customer", "admin", "rider"],
+  "GET /api/coupons": ["customer"],
   "POST /api/coupons/validate": ["customer"],
 
   // Orders — placing and tracking is customer-only; a single order is

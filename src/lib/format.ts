@@ -15,6 +15,12 @@ export function formatDate(value: string | Date) {
   });
 }
 
+/** "12 Sep" from an ISO timestamp or Date. */
+export function formatDay(value: string | Date) {
+  const d = typeof value === "string" ? new Date(value) : value;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
+
 export function formatOrderNumber(n: number) {
   return `#${String(n).padStart(4, "0")}`;
 }

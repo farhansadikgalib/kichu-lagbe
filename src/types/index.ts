@@ -47,6 +47,9 @@ export type AdminOrder = OrderWithItems & {
   user: Pick<User, "id" | "name" | "email" | "phone">;
 };
 
+/** Coupon as shown to customers — the public subset of {@link Coupon}. */
+export type AvailableCoupon = Pick<Coupon, "code" | "type" | "value" | "minOrder" | "expiresAt">;
+
 export interface CouponValidationResult {
   code: string;
   type: CouponType;
