@@ -4,7 +4,8 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import { Button, type buttonVariants } from "@/components/ui/button";
 import type { VariantProps } from "class-variance-authority";
-import { getInstallInstructions, isStandaloneDisplay } from "@/lib/pwa";
+import { InstallGuideSheet } from "@/components/pwa/install-guide-sheet";
+import { isStandaloneDisplay } from "@/lib/pwa";
 
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -43,8 +44,9 @@ function subscribeStandalone(onChange: () => void) {
 
 /**
  * "Install app" CTA. Triggers the native PWA install prompt where the browser
- * supports `beforeinstallprompt`; otherwise shows add-to-home-screen guidance.
- * Renders nothing once the app is already installed (standalone display mode).
+ * supports `beforeinstallprompt`; otherwise opens the add-to-home-screen
+ * walkthrough (no iOS browser offers a prompt of its own). Renders nothing
+ * once the app is already installed (standalone display mode).
  */
 export function InstallAppButton({
   size = "lg",
@@ -53,6 +55,7 @@ export function InstallAppButton({
   const standalone = useSyncExternalStore(subscribeStandalone, isStandaloneDisplay, () => false);
   const installEvent = useSyncExternalStore(subscribePrompt, () => deferredPrompt, () => null);
   const [justInstalled, setJustInstalled] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   useEffect(() => {
     const onInstalled = () => {
@@ -74,14 +77,16 @@ export function InstallAppButton({
       return;
     }
     // No native prompt here (every iOS browser, plus desktop Safari/Firefox):
-    // show the steps for the browser the user is actually in.
-    const { title, description } = getInstallInstructions();
-    toast.info(title, { description, duration: 8000 });
+    // walk through the steps for the browser the user is actually in.
+    setGuideOpen(true);
   };
 
   return (
-    <Button size={size} variant={variant} onClick={handleClick}>
-      Install app
-    </Button>
+    <>
+      <Button size={size} variant={variant} onClick={handleClick}>
+        Install app
+      </Button>
+      <InstallGuideSheet open={guideOpen} onOpenChange={setGuideOpen} />
+    </>
   );
 }

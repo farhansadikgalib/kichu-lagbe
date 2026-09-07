@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { usePush } from "@/hooks/use-push";
 import { useSession } from "@/hooks/use-session";
-import { getInstallInstructions } from "@/lib/pwa";
+import { getInstallGuide } from "@/lib/pwa";
 import { cn } from "@/lib/utils";
 
 interface PushToggleProps {
@@ -36,7 +36,7 @@ export function PushToggle({ variant = "row", className }: PushToggleProps) {
   const copy = COPY[status];
   const hint =
     status === "needs-install"
-      ? `${getInstallInstructions().description} Then turn notifications on from the installed app.`
+      ? `${getInstallGuide().description} Then turn notifications on from the installed app.`
       : copy.hint;
   const on = status === "subscribed";
   const canToggle = status === "subscribed" || status === "unsubscribed";
