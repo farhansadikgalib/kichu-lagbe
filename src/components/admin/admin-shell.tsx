@@ -8,6 +8,7 @@ import {
   Bike,
   LayoutDashboard,
   LayoutTemplate,
+  LogOut,
   Menu,
   Package,
   ShoppingBasket,
@@ -25,6 +26,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useLogout } from "@/hooks/use-logout";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -91,17 +93,29 @@ function AdminNav({
   );
 }
 
-function BackToStore({ onNavigate }: { onNavigate?: () => void }) {
+const FOOTER_LINK_CLASS =
+  "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground";
+
+/** Drawer footer: leave the console, or end the session. */
+function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
+  const logout = useLogout();
   return (
-    <div className="border-t border-border/60 p-3">
-      <Link
-        href="/"
-        onClick={onNavigate}
-        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors duration-200 hover:bg-accent hover:text-foreground"
-      >
+    <div className="flex flex-col gap-1 border-t border-border/60 p-3">
+      <Link href="/" onClick={onNavigate} className={FOOTER_LINK_CLASS}>
         <Store className="size-4" aria-hidden />
         Back to store
       </Link>
+      <button
+        type="button"
+        onClick={() => {
+          onNavigate?.();
+          void logout();
+        }}
+        className={cn(FOOTER_LINK_CLASS, "hover:text-destructive")}
+      >
+        <LogOut className="size-4" aria-hidden />
+        Log out
+      </button>
     </div>
   );
 }
@@ -121,7 +135,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <Brand />
         </div>
         <AdminNav pathname={pathname} />
-        <BackToStore />
+        <SidebarFooter />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -146,7 +160,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 </SheetTitle>
               </SheetHeader>
               <AdminNav pathname={pathname} onNavigate={closeMobile} />
-              <BackToStore onNavigate={closeMobile} />
+              <SidebarFooter onNavigate={closeMobile} />
             </SheetContent>
           </Sheet>
 

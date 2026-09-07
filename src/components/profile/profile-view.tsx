@@ -1,7 +1,5 @@
 "use client";
 
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { BadgeCheck, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -19,8 +17,9 @@ import { Reveal } from "@/components/motion";
 import { ChangePasswordDialog } from "@/components/profile/change-password-dialog";
 import { PushToggle } from "@/components/pwa/push-toggle";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { useLogout } from "@/hooks/use-logout";
 import { useSession } from "@/hooks/use-session";
-import { apiMutate, swrFetcher } from "@/lib/api/fetcher";
+import { swrFetcher } from "@/lib/api/fetcher";
 import { formatDate } from "@/lib/format";
 import type { User } from "@/types";
 
@@ -35,7 +34,6 @@ function initialsOf(name: string) {
 
 /** Account page: identity card, profile editing, password change, and logout. */
 export function ProfileView() {
-  const router = useRouter();
   const { mutate: mutateSession } = useSession();
   const {
     data: profile,
@@ -44,16 +42,7 @@ export function ProfileView() {
     mutate: mutateProfile,
   } = useSWR<User>("/api/auth/profile", swrFetcher);
 
-  async function handleLogout() {
-    try {
-      await apiMutate("/api/auth/logout");
-      await mutateSession(null);
-      router.push("/");
-      router.refresh();
-    } catch {
-      toast.error("Could not log out. Please try again.");
-    }
-  }
+  const handleLogout = useLogout();
 
   if (isLoading) {
     return (

@@ -1,8 +1,6 @@
 "use client";
 
-import { toast } from "sonner";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { LogOut, Package, ShieldCheck, User as UserIcon, Bike } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +12,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useLogout } from "@/hooks/use-logout";
 import { useSession } from "@/hooks/use-session";
-import { apiMutate } from "@/lib/api/fetcher";
 
 export function UserMenu() {
-  const { user, isLoading, mutate } = useSession();
-  const router = useRouter();
+  const { user, isLoading } = useSession();
+  const handleLogout = useLogout();
 
   if (isLoading) return <div className="size-9 rounded-full bg-muted" aria-hidden />;
 
@@ -38,17 +36,6 @@ export function UserMenu() {
     .join("")
     .toUpperCase();
 
-  async function handleLogout() {
-    try {
-      await apiMutate("/api/auth/logout");
-      await mutate(null);
-      router.push("/");
-      router.refresh();
-    } catch {
-      toast.error("Could not log out. Please try again.");
-    }
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -66,29 +53,32 @@ export function UserMenu() {
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuLabel className="truncate">{user.name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/profile">
-            <UserIcon /> Profile
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/orders">
-            <Package /> My orders
-          </Link>
-        </DropdownMenuItem>
-        {user.role === "admin" && (
+        {/* Staff accounts go straight to their console — no shopper pages. */}
+        {user.role === "admin" ? (
           <DropdownMenuItem asChild>
             <Link href="/admin">
               <ShieldCheck /> Admin console
             </Link>
           </DropdownMenuItem>
-        )}
-        {(user.role === "rider" || user.role === "admin") && (
+        ) : user.role === "rider" ? (
           <DropdownMenuItem asChild>
             <Link href="/rider">
               <Bike /> Rider console
             </Link>
           </DropdownMenuItem>
+        ) : (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/profile">
+                <UserIcon /> Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/orders">
+                <Package /> My orders
+              </Link>
+            </DropdownMenuItem>
+          </>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleLogout} variant="destructive">
