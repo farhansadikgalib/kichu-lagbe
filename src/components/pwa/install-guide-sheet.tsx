@@ -1,9 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import {
   ArrowDown,
   Check,
+  Compass,
   Copy,
   Ellipsis,
   ExternalLink,
@@ -22,7 +24,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { getInstallGuide, type InstallStepIcon } from "@/lib/pwa";
+import { getInstallGuide, safariUrlFor, type InstallStepIcon } from "@/lib/pwa";
+
+/** If the page is still showing this long after the hand-off, the webview swallowed it. */
+const HANDOFF_TIMEOUT_MS = 1500;
 
 /* `Share` is the iOS glyph (box with an arrow out the top), so the step
    looks like the button the user has to find. */
@@ -49,6 +54,7 @@ interface InstallGuideSheetProps {
 export function InstallGuideSheet({ open, onOpenChange }: InstallGuideSheetProps) {
   // Reads `navigator`, so only resolve it client-side once the sheet opens.
   const guide = open ? getInstallGuide() : null;
+  const handoffTimer = useRef<number | null>(null);
 
   async function copyLink() {
     try {
@@ -57,6 +63,19 @@ export function InstallGuideSheet({ open, onOpenChange }: InstallGuideSheetProps
     } catch {
       toast.error("Couldn’t copy. Long-press the address bar to copy the link instead.");
     }
+  }
+
+  /** Best-effort jump to Safari; falls back to copying the link when the host blocks it. */
+  function openInSafari() {
+    const url = safariUrlFor(window.location.href);
+    if (!url) return void copyLink();
+    if (handoffTimer.current) window.clearTimeout(handoffTimer.current);
+    handoffTimer.current = window.setTimeout(() => {
+      if (document.visibilityState === "visible") {
+        toast.info("This app won’t hand over to Safari — copy the link and paste it there.");
+      }
+    }, HANDOFF_TIMEOUT_MS);
+    window.location.href = url;
   }
 
   return (
@@ -108,10 +127,10 @@ export function InstallGuideSheet({ open, onOpenChange }: InstallGuideSheetProps
               })}
             </ol>
 
-            {guide.shareAt === "bottom" && (
+            {guide.hint && (
               <p className="mt-2 flex items-center justify-center gap-2 px-4 text-xs font-medium text-muted-foreground">
                 <ArrowDown className="size-4 motion-safe:animate-bounce" aria-hidden />
-                The Share button is in the bar right below this sheet
+                {guide.hint}
               </p>
             )}
 
@@ -122,8 +141,11 @@ export function InstallGuideSheet({ open, onOpenChange }: InstallGuideSheetProps
                 </SheetClose>
               ) : (
                 <>
-                  <Button size="lg" onClick={copyLink}>
-                    <Copy aria-hidden /> Copy link for Safari
+                  <Button size="lg" onClick={openInSafari}>
+                    <Compass aria-hidden /> Open in Safari
+                  </Button>
+                  <Button size="lg" variant="outline" onClick={copyLink}>
+                    <Copy aria-hidden /> Copy link instead
                   </Button>
                   <SheetClose asChild>
                     <Button size="lg" variant="ghost">

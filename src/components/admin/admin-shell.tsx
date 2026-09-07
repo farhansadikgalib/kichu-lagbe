@@ -139,7 +139,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-2 border-b border-border/60 bg-background/80 px-4 backdrop-blur-lg md:px-6">
+        <header className="sticky top-0 z-40 flex min-h-16 items-center gap-2 border-b border-border/60 bg-background/80 px-4 pt-[env(safe-area-inset-top)] backdrop-blur-lg md:px-6">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
               <Button

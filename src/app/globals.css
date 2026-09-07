@@ -115,9 +115,11 @@
 }
 
 /* Visible header height; the header zeroes it while hidden on scroll so
-   sticky toolbars (`top-(--header-offset)`) dock flush beneath it. */
+   sticky toolbars (`top-(--header-offset)`) dock flush beneath it. The
+   safe-area term is only non-zero as an installed iOS app, where the page
+   extends under the status bar and the header pads itself past it. */
 :root {
-  --header-offset: 4rem;
+  --header-offset: calc(4rem + env(safe-area-inset-top));
 }
 
 /* Horizontal chip rows: scrollable, but no scrollbar chrome. */

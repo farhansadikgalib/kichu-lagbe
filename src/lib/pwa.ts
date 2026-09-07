@@ -52,6 +52,27 @@ export function getIosBrowser(): IosBrowser {
   return "safari";
 }
 
+/**
+ * Safari's major version. Safari 26 froze the "iPhone OS 18_x" part of the
+ * UA, so this token is the only reliable way to tell iOS 26 Safari, whose
+ * toolbar hides Share behind a "⋯" button, from the older bottom toolbar.
+ */
+export function getSafariMajorVersion(): number | null {
+  const ua = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  const match = /Version\/(\d+)/.exec(ua);
+  return match ? Number(match[1]) : null;
+}
+
+/**
+ * A URL that asks iOS to open the page in Safari (`x-safari-https://…`),
+ * for leaving an in-app webview. Undocumented but long-supported by Chrome,
+ * Firefox and Edge on iOS and by most social-app webviews; the caller must
+ * still offer a fallback for hosts that swallow it.
+ */
+export function safariUrlFor(href: string): string | null {
+  return /^https?:\/\//.test(href) ? `x-safari-${href}` : null;
+}
+
 export type InstallStepIcon = "share" | "menu" | "add" | "confirm" | "open";
 
 export interface InstallStep {
@@ -64,8 +85,8 @@ export interface InstallGuide {
   /** The steps as one sentence, for tooltips and toasts. */
   description: string;
   steps: InstallStep[];
-  /** Where this browser keeps its Share control, so the guide can point at it. */
-  shareAt: "bottom" | "address-bar" | null;
+  /** Where the first control lives on screen, shown with a pointer under the steps. */
+  hint: string | null;
   /** False inside embedded webviews: the page must be reopened in a real browser first. */
   canInstall: boolean;
 }
@@ -83,7 +104,7 @@ function sentence(steps: InstallStep[]) {
 function guide(
   title: string,
   steps: InstallStep[],
-  extra: Pick<InstallGuide, "shareAt" | "canInstall">,
+  extra: Pick<InstallGuide, "hint" | "canInstall">,
 ): InstallGuide {
   return { title, description: sentence(steps), steps, ...extra };
 }
@@ -104,7 +125,7 @@ export function getInstallGuide(): InstallGuide {
         { icon: "menu", text: "Open your browser’s menu" },
         { icon: "add", text: "Choose “Install app” or “Add to Home screen”" },
       ],
-      { shareAt: null, canInstall: true },
+      { hint: null, canInstall: true },
     );
   }
 
@@ -113,11 +134,11 @@ export function getInstallGuide(): InstallGuide {
       return guide(
         "Open in Safari first",
         [
-          { icon: "menu", text: "Tap the ⋯ or ⋮ menu in the corner of this screen" },
-          { icon: "open", text: "Choose “Open in browser” or “Open in Safari”" },
-          { icon: "share", text: "There, tap Share and choose “Add to Home Screen”" },
+          { icon: "open", text: "Tap “Open in Safari” below (or use this app’s ⋯ menu → “Open in browser”)" },
+          { icon: "share", text: "In Safari, tap Share — on iOS 26 it is inside the ⋯ button at the bottom-right" },
+          { icon: "add", text: "Choose “Add to Home Screen”, then tap “Add”" },
         ],
-        { shareAt: null, canInstall: false },
+        { hint: null, canInstall: false },
       );
     case "chrome":
     case "brave":
@@ -128,7 +149,7 @@ export function getInstallGuide(): InstallGuide {
           ADD_STEP,
           CONFIRM_STEP,
         ],
-        { shareAt: "address-bar", canInstall: true },
+        { hint: "The Share icon sits at the end of the address bar", canInstall: true },
       );
     case "edge":
     case "firefox":
@@ -141,15 +162,30 @@ export function getInstallGuide(): InstallGuide {
           ADD_STEP,
           CONFIRM_STEP,
         ],
-        { shareAt: null, canInstall: true },
+        { hint: null, canInstall: true },
       );
     case "duckduckgo":
       return guide(
         title,
         [{ icon: "share", text: "Tap the Share button" }, ADD_STEP, CONFIRM_STEP],
-        { shareAt: null, canInstall: true },
+        { hint: null, canInstall: true },
       );
-    default:
+    default: {
+      // iOS 26 Safari's compact toolbar: "⋯" → Share → View More → Add to Home Screen.
+      // Verified on an iPhone 17 simulator running iOS 26.5.
+      const version = getSafariMajorVersion();
+      if (version !== null && version >= 26) {
+        return guide(
+          title,
+          [
+            { icon: "menu", text: "Tap the ⋯ button at the bottom-right of Safari" },
+            { icon: "share", text: "Tap “Share”" },
+            { icon: "add", text: "Tap “View More”, then “Add to Home Screen”" },
+            CONFIRM_STEP,
+          ],
+          { hint: "The ⋯ button is at the bottom-right, just below this sheet", canInstall: true },
+        );
+      }
       return guide(
         title,
         [
@@ -157,7 +193,8 @@ export function getInstallGuide(): InstallGuide {
           ADD_STEP,
           CONFIRM_STEP,
         ],
-        { shareAt: "bottom", canInstall: true },
+        { hint: "The Share button is in the bar right below this sheet", canInstall: true },
       );
+    }
   }
 }

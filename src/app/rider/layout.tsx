@@ -21,7 +21,7 @@ async function RiderGuard({ children }: { children: ReactNode }) {
 export default function RiderLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-lg">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur-lg">
         <div className="container-page flex h-14 items-center justify-between gap-3">
           <Link
             href="/rider"

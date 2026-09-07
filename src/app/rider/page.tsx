@@ -53,7 +53,7 @@ export default function RiderDeliveriesPage() {
       <EarningsStrip orders={orders} />
 
       <Tabs defaultValue="available">
-        <TabsList className="sticky top-[6.5rem] z-40 h-11 w-full bg-muted shadow-md sm:top-14">
+        <TabsList className="sticky top-[calc(6.5rem+env(safe-area-inset-top))] z-40 h-11 w-full bg-muted shadow-md sm:top-[calc(3.5rem+env(safe-area-inset-top))]">
           <TabsTrigger value="available" className="min-h-9">
             Available{!isLoading && !error ? ` (${available.length})` : ""}
           </TabsTrigger>

@@ -22,7 +22,7 @@ const NAV_LINKS = [
 ] as const;
 
 /** Header height — keep in sync with the `h-16` bar and the CSS default. */
-const HEADER_HEIGHT = "4rem";
+const HEADER_HEIGHT = "calc(4rem + env(safe-area-inset-top))";
 
 /** Viewport fraction the "Hot right now" section must reach before the nav appears. */
 const NAV_REVEAL_AT = 0.8;
@@ -94,7 +94,10 @@ export function Header() {
   );
 
   return (
-    <header ref={ref} className="sticky top-0 z-50 backdrop-blur-lg">
+    <header
+      ref={ref}
+      className="sticky top-0 z-50 pt-[env(safe-area-inset-top)] backdrop-blur-lg"
+    >
       <div className="container-page flex h-16 items-center justify-between gap-3">
         <Link
           href="/"
