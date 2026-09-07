@@ -1,4 +1,4 @@
-import { getSession } from "@/lib/auth/session";
+import { getSession, renewSession } from "@/lib/auth/session";
 import { resolveLiveSession } from "@/lib/auth/guards";
 import { handleApiError, ok } from "@/lib/api/response";
 
@@ -13,6 +13,10 @@ export async function GET() {
     // route/page.
     const live = await resolveLiveSession(session);
     if (!live) return ok(null);
+
+    // Every page load lands here, so this is where the "stay signed in"
+    // window slides forward for anyone still active.
+    await renewSession(session, live);
 
     return ok({
       id: live.sub,
